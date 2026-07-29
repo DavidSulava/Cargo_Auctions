@@ -1,0 +1,89 @@
+import { createRootRouteWithContext, createRoute, createRouter, Outlet } from '@tanstack/react-router'
+import type { QueryClient } from '@tanstack/react-query'
+import { Suspense, lazy } from 'react'
+import { AppShell } from '@astryxdesign/core/AppShell'
+import { TopNav } from '@astryxdesign/core/TopNav'
+import { TopNavHeading } from '@astryxdesign/core/TopNav'
+import { SideNav } from '@astryxdesign/core/SideNav'
+import { SideNavSection } from '@astryxdesign/core/SideNav'
+import { SideNavItem } from '@astryxdesign/core/SideNav'
+import { Skeleton } from '@astryxdesign/core/Skeleton'
+
+const AuctionListPage = lazy(() => import('~/pages/auction-list'))
+const AuctionDetailPage = lazy(() => import('~/pages/auction-detail'))
+const AuctionBetsPage = lazy(() => import('~/pages/auction-bets'))
+const BetFormPage = lazy(() => import('~/pages/bet-form'))
+
+function PageLoader() {
+  return (
+    <div className="p-4 space-y-4">
+      <Skeleton width="60%" height="32px" />
+      <Skeleton width="100%" height="200px" />
+      <Skeleton width="100%" height="200px" />
+    </div>
+  )
+}
+
+const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  component: () => (
+    <AppShell
+      topNav={
+        <TopNav
+          heading={<TopNavHeading heading="Грузовые аукционы" />}
+        />
+      }
+      sideNav={
+        <SideNav>
+          <SideNavSection title="Меню">
+            <SideNavItem label="Аукционы" href="/" />
+          </SideNavSection>
+        </SideNav>
+      }
+    >
+      <Suspense fallback={<PageLoader />}>
+        <Outlet />
+      </Suspense>
+    </AppShell>
+  ),
+  notFoundComponent: () => (
+    <div className="flex items-center justify-center h-[60vh] text-primary">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-2">404</h1>
+        <p>Страница не найдена</p>
+      </div>
+    </div>
+  ),
+})
+
+const auctionListRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  component: AuctionListPage,
+})
+
+const auctionDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auctions/$uuid',
+  component: AuctionDetailPage,
+})
+
+const auctionBetsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auctions/$uuid/bets',
+  component: AuctionBetsPage,
+})
+
+const betFormRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/auctions/$uuid/bid',
+  component: BetFormPage,
+})
+
+const routeTree = rootRoute.addChildren([
+  auctionListRoute,
+  auctionDetailRoute,
+  auctionBetsRoute,
+  betFormRoute,
+])
+
+export const router = createRouter({ routeTree })
