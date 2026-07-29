@@ -8,6 +8,7 @@ import { SideNav } from '@astryxdesign/core/SideNav'
 import { SideNavSection } from '@astryxdesign/core/SideNav'
 import { SideNavItem } from '@astryxdesign/core/SideNav'
 import { Skeleton } from '@astryxdesign/core/Skeleton'
+import { filterSchema } from '~/shared/lib/filter-schema'
 
 const AuctionListPage = lazy(() => import('~/pages/auction-list'))
 const AuctionDetailPage = lazy(() => import('~/pages/auction-detail'))
@@ -55,9 +56,10 @@ const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   ),
 })
 
-const auctionListRoute = createRoute({
+export const auctionListRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  validateSearch: filterSchema,
   component: AuctionListPage,
 })
 

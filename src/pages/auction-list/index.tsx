@@ -1,7 +1,7 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useAuctionList } from '~/entities/auction/queries'
-import { filterSchema } from '~/shared/lib/filter-schema'
+import type { FilterParams } from '~/shared/lib/filter-schema'
 import { AuctionFiltersPanel } from '~/widgets/auction-card/filters'
 import { AuctionListTable } from '~/widgets/auction-card/table'
 import { Pagination } from '@astryxdesign/core/Pagination'
@@ -12,7 +12,7 @@ import { Section } from '@astryxdesign/core/Section'
 
 const FILTER_STORAGE_KEY = 'auction-filters'
 
-function loadSavedFilters(): Record<string, string> {
+function loadSavedFilters(): Partial<Record<string, string>> {
   try {
     return JSON.parse(localStorage.getItem(FILTER_STORAGE_KEY) ?? '{}')
   } catch {
@@ -20,16 +20,25 @@ function loadSavedFilters(): Record<string, string> {
   }
 }
 
-function mergeFilters(search: Record<string, unknown>) {
-  const saved = loadSavedFilters()
-  return { ...saved, ...search }
+function isDefaultFilters(f: FilterParams): boolean {
+  return !f.cargo_num && !f.status && f.statuses.length === 0 && !f.auc_type
+    && !f.load_city && !f.unload_city && !f.load_date_from && !f.load_date_to
+    && f.is_available === undefined && f.is_bidder === undefined
+    && f.price_from === undefined && f.price_to === undefined
 }
 
 export default function AuctionListPage() {
-  const search = useSearch({ from: '__root__' }) as Record<string, unknown>
+  const filters = useSearch({ from: '/' })
   const navigate = useNavigate()
-  const merged = useMemo(() => mergeFilters(search), [search])
-  const filters = filterSchema.parse(merged)
+
+  useEffect(() => {
+    if (isDefaultFilters(filters)) {
+      const saved = loadSavedFilters()
+      if (Object.keys(saved).length > 0) {
+        navigate({ search: saved, replace: true })
+      }
+    }
+  }, [])
 
   const { data, isLoading, isError, error } = useAuctionList(filters)
   const totalPages = data ? Math.ceil(data.total / data.per_page) : 0

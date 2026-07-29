@@ -2,7 +2,7 @@
 id: 003
 title: Схема валидации search params (фильтры)
 type: prototype
-status: open
+status: closed
 assignee: ""
 labels: wayfinder:prototype
 blocked_by: []
