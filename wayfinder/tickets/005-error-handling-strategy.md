@@ -2,7 +2,7 @@
 id: 005
 title: Стратегия обработки ошибок и тостов
 type: grilling
-status: open
+status: closed
 assignee: ""
 labels: wayfinder:grilling
 blocked_by: []

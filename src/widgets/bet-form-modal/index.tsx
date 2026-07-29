@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Dialog, useImperativeDialog } from '@astryxdesign/core/Dialog'
+import { Dialog } from '@astryxdesign/core/Dialog'
 import { NumberInput } from '@astryxdesign/core/NumberInput'
 import { CheckboxInput } from '@astryxdesign/core/CheckboxInput'
 import { Button } from '@astryxdesign/core/Button'
@@ -10,6 +10,7 @@ import { Banner } from '@astryxdesign/core/Banner'
 import { useEffect, useState } from 'react'
 import type { AuctionDetail } from '~/entities/auction/types'
 import type { PlaceBetRequest } from '~/entities/bet/types'
+import { ApiError } from '~/shared/api/client'
 
 function createBetSchema(auction: AuctionDetail) {
   const schema: Record<string, z.ZodTypeAny> = {
@@ -44,6 +45,7 @@ export function BetFormModal({ auction, isPending, onSubmit, onClose }: Props) {
     handleSubmit,
     watch,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<BetFormValues>({
     resolver: zodResolver(betSchema),
@@ -61,6 +63,14 @@ export function BetFormModal({ auction, isPending, onSubmit, onClose }: Props) {
     try {
       await onSubmit(data)
     } catch (err: any) {
+      if (err instanceof ApiError && err.status === 422 && err.details) {
+        const details = err.details as Record<string, unknown>
+        for (const [field, msg] of Object.entries(details)) {
+          if (field in data) {
+            setError(field as keyof BetFormValues, { message: String(msg) })
+          }
+        }
+      }
       setSubmitError(err?.message ?? 'Не удалось разместить ставку')
     }
   }
