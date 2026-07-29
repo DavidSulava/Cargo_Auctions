@@ -2,7 +2,7 @@
 id: 001
 title: Выбор компонентов Astryx для UI
 type: research
-status: open
+status: closed
 assignee: ""
 labels: wayfinder:research
 blocked_by: []
