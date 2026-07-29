@@ -1,5 +1,6 @@
-import { useParams, useNavigate, Link } from '@tanstack/react-router'
+import { useParams, useNavigate } from '@tanstack/react-router'
 import { useAuctionDetail } from '~/entities/auction/queries'
+import { useBetList, usePlaceBet } from '~/entities/bet/queries'
 import { Skeleton } from '@astryxdesign/core/Skeleton'
 import { Badge } from '@astryxdesign/core/Badge'
 import { Button } from '@astryxdesign/core/Button'
@@ -7,6 +8,9 @@ import { Banner } from '@astryxdesign/core/Banner'
 import { Section } from '@astryxdesign/core/Section'
 import { MetadataList } from '@astryxdesign/core/MetadataList'
 import { TabList } from '@astryxdesign/core/TabList'
+import { EmptyState } from '@astryxdesign/core/EmptyState'
+import { Avatar } from '@astryxdesign/core/Avatar'
+import { BetFormModal } from '~/widgets/bet-form-modal'
 import { useState } from 'react'
 
 const STATUS_BADGE: Record<string, { variant: 'success' | 'warning' | 'error' | 'info' | 'neutral'; label: string }> = {
@@ -29,6 +33,9 @@ export default function AuctionDetailPage() {
   const navigate = useNavigate()
   const { data, isLoading, isError } = useAuctionDetail(uuid)
   const [tab, setTab] = useState('detail')
+  const [betModalOpen, setBetModalOpen] = useState(false)
+  const betsQuery = useBetList(tab === 'bets' ? uuid : '')
+  const placeBetMutation = usePlaceBet(uuid)
 
   if (isLoading) {
     return (
@@ -70,11 +77,17 @@ export default function AuctionDetailPage() {
           <Button
             label={data.trading.my_bet ? 'Изменить ставку' : 'Сделать ставку'}
             variant="primary"
-            onClick={() => navigate({ to: `/auctions/${uuid}/bid` })}
+            onClick={() => setBetModalOpen(true)}
           />
         ) : (
           <Button label="Сделать ставку" variant="primary" disabled />
         )}
+        <BetFormModal
+          auction={data}
+          isPending={placeBetMutation.isPending}
+          onSubmit={async (d) => { await placeBetMutation.mutateAsync(d); setBetModalOpen(false) }}
+          onClose={() => setBetModalOpen(false)}
+        />
       </div>
 
       <TabList
@@ -171,10 +184,72 @@ export default function AuctionDetailPage() {
           <Banner status="info" title="История ставок скрыта">
             Организатор скрыл историю ставок для этого аукциона.
           </Banner>
+        ) : betsQuery.isLoading ? (
+          <div className="p-4 space-y-3">
+            <Skeleton width="100%" height="40px" />
+            <Skeleton width="100%" height="40px" />
+            <Skeleton width="100%" height="40px" />
+          </div>
+        ) : betsQuery.isError ? (
+          <Banner status="error" title="Ошибка загрузки ставок" />
+        ) : betsQuery.data && betsQuery.data.items.length > 0 ? (
+          <Section>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="p-3 text-left text-sm font-medium text-secondary">#</th>
+                    <th className="p-3 text-left text-sm font-medium text-secondary">Перевозчик</th>
+                    <th className="p-3 text-left text-sm font-medium text-secondary">Цена</th>
+                    <th className="p-3 text-left text-sm font-medium text-secondary">С НДС / без НДС</th>
+                    <th className="p-3 text-left text-sm font-medium text-secondary">Статус</th>
+                    <th className="p-3 text-left text-sm font-medium text-secondary">Дата</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {betsQuery.data.items.map((bet) => (
+                    <tr key={bet.id} className="border-b border-border hover:bg-surface">
+                      <td className="p-3 text-sm">{bet.rank}</td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <Avatar name={bet.carrier_name} size="sm" />
+                          <span className="text-sm">{bet.carrier_name}</span>
+                        </div>
+                      </td>
+                      <td className="p-3 text-sm font-medium">
+                        {bet.price.toLocaleString('ru-RU')} ₽
+                      </td>
+                      <td className="p-3 text-sm">
+                        <div>{bet.price_with_nds.toLocaleString('ru-RU')} ₽ с НДС</div>
+                        <div className="text-secondary">{bet.price_without_nds.toLocaleString('ru-RU')} ₽ без НДС</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex gap-1 flex-wrap">
+                          {bet.is_winner && <Badge variant="success">Победитель</Badge>}
+                          {bet.is_cancelled && (
+                            <Badge variant="error" title={bet.cancel_reason}>
+                              Отменена
+                            </Badge>
+                          )}
+                          {!bet.is_winner && !bet.is_cancelled && (
+                            <Badge variant="neutral">Активна</Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-3 text-sm text-secondary">
+                        {new Date(bet.created_at).toLocaleString('ru-RU')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Section>
         ) : (
-          <Link to={`/auctions/${uuid}/bets`}>
-            <Button label="Перейти к ставкам" variant="secondary" />
-          </Link>
+          <EmptyState
+            title="Ставок пока нет"
+            description="На этот аукцион ещё никто не сделал ставку"
+          />
         )
       )}
     </div>

@@ -2,7 +2,7 @@
 id: 004
 title: Структура маршрутов TanStack Router
 type: prototype
-status: open
+status: closed
 assignee: ""
 labels: wayfinder:prototype
 blocked_by: []
