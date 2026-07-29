@@ -36,7 +36,7 @@ const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
       sideNav={
         <SideNav>
           <SideNavSection title="Меню">
-            <SideNavItem label="Аукционы" href="/" />
+            <SideNavItem label="Аукционы" href={import.meta.env.BASE_URL} />
           </SideNavSection>
         </SideNav>
       }
@@ -88,4 +88,6 @@ const routeTree = rootRoute.addChildren([
   betFormRoute,
 ])
 
-export const router = createRouter({ routeTree })
+const basePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL
+
+export const router = createRouter({ routeTree, basePath })
