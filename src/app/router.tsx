@@ -88,6 +88,6 @@ const routeTree = rootRoute.addChildren([
   betFormRoute,
 ])
 
-const basePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL
+const basepath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/+$/, '')
 
-export const router = createRouter({ routeTree, basePath })
+export const router = createRouter({ routeTree, basepath })
