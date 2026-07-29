@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 *.pdf
+src/App.css
+src/App.tsx
+src/assets/
 dist-ssr
 *.local
 
