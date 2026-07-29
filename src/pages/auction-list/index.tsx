@@ -105,7 +105,7 @@ export default function AuctionListPage() {
                 totalItems={data.total}
                 page={filters.page ?? 1}
                 totalPages={totalPages}
-                onPageChange={setPage}
+                onChange={setPage}
               />
             )}
           </>
