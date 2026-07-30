@@ -4,7 +4,7 @@ import { Providers } from '~/app/providers'
 import './index.css'
 
 async function start() {
-  if (import.meta.env.DEV) {
+  if (import.meta.env.DEV && !navigator.webdriver) {
     const { worker } = await import('~/shared/mocks/browser')
     await worker.start({
       serviceWorker: {

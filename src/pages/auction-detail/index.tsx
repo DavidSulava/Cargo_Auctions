@@ -1,16 +1,15 @@
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { useAuctionDetail } from '~/entities/auction/queries'
-import { useBetList, usePlaceBet } from '~/entities/bet/queries'
+import { useBetList } from '~/entities/bet/queries'
 import { Skeleton } from '@astryxdesign/core/Skeleton'
 import { Badge } from '@astryxdesign/core/Badge'
 import { Button } from '@astryxdesign/core/Button'
 import { Banner } from '@astryxdesign/core/Banner'
 import { Section } from '@astryxdesign/core/Section'
-import { MetadataList } from '@astryxdesign/core/MetadataList'
-import { TabList } from '@astryxdesign/core/TabList'
+import { MetadataList, MetadataListItem } from '@astryxdesign/core/MetadataList'
+import { TabList, Tab } from '@astryxdesign/core/TabList'
 import { EmptyState } from '@astryxdesign/core/EmptyState'
 import { Avatar } from '@astryxdesign/core/Avatar'
-import { BetFormModal } from '~/widgets/bet-form-modal'
 import { useState } from 'react'
 
 const STATUS_BADGE: Record<string, { variant: 'success' | 'warning' | 'error' | 'info' | 'neutral'; label: string }> = {
@@ -33,9 +32,7 @@ export default function AuctionDetailPage() {
   const navigate = useNavigate()
   const { data, isLoading, isError } = useAuctionDetail(uuid)
   const [tab, setTab] = useState('detail')
-  const [betModalOpen, setBetModalOpen] = useState(false)
   const betsQuery = useBetList(tab === 'bets' ? uuid : '')
-  const placeBetMutation = usePlaceBet(uuid)
 
   if (isLoading) {
     return (
@@ -73,32 +70,17 @@ export default function AuctionDetailPage() {
           </div>
           <h1 className="text-2xl font-bold text-primary">{data.cargo_num}</h1>
         </div>
-        {data.trading.can_set_bet ? (
-          <Button
-            label={data.trading.my_bet ? 'Изменить ставку' : 'Сделать ставку'}
-            variant="primary"
-            onClick={() => setBetModalOpen(true)}
-          />
-        ) : (
-          <Button label="Сделать ставку" variant="primary" disabled />
-        )}
-        <BetFormModal
-          auction={data}
-          isPending={placeBetMutation.isPending}
-          onSubmit={async (d) => { await placeBetMutation.mutateAsync(d); setBetModalOpen(false) }}
-          onClose={() => setBetModalOpen(false)}
+        <Button
+          label={data.trading.my_bet ? 'Изменить ставку' : 'Сделать ставку'}
+          variant="primary"
+          onClick={() => navigate({ to: `/auctions/${uuid}/bid` })}
         />
       </div>
 
-      <TabList
-        tabs={[
-          { id: 'detail', label: 'Детали' },
-          { id: 'bets', label: 'Ставки' },
-        ]}
-        selectedId={tab}
-        onChange={setTab}
-        hasDivider
-      />
+      <TabList value={tab} onChange={setTab} hasDivider>
+        <Tab value="detail" label="Детали" />
+        <Tab value="bets" label="Ставки" />
+      </TabList>
 
       {tab === 'detail' && (
         <>
@@ -108,73 +90,70 @@ export default function AuctionDetailPage() {
             </Banner>
           )}
 
-          <Section title="Маршрут">
+          <h2 className="text-lg font-semibold mb-2">Маршрут</h2>
+          <Section>
             <MetadataList>
               {data.route.map((point, i) => (
-                <MetadataList.Row key={point.id}>
-                  <MetadataList.Term>{i === 0 ? 'Погрузка' : 'Выгрузка'}</MetadataList.Term>
-                  <MetadataList.Detail>
-                    <div>{point.city}</div>
-                    {point.address && <div className="text-secondary">{point.address}</div>}
-                    <div className="text-sm text-secondary">{point.date_from} — {point.date_to}</div>
-                  </MetadataList.Detail>
-                </MetadataList.Row>
+                <MetadataListItem key={point.id} label={i === 0 ? 'Погрузка' : 'Выгрузка'}>
+                  <div>{point.city}</div>
+                  {point.address && <div className="text-secondary">{point.address}</div>}
+                  <div className="text-sm text-secondary">{point.date_from} — {point.date_to}</div>
+                </MetadataListItem>
               ))}
             </MetadataList>
           </Section>
 
-          <Section title="Груз и требования">
+          <h2 className="text-lg font-semibold mb-2">Груз и требования</h2>
+          <Section>
             <MetadataList>
-              <MetadataList.Row><MetadataList.Term>Наименование</MetadataList.Term><MetadataList.Detail>{data.cargo_name}</MetadataList.Detail></MetadataList.Row>
-              <MetadataList.Row><MetadataList.Term>Вес</MetadataList.Term><MetadataList.Detail>{data.cargo_weight_kg.toLocaleString('ru-RU')} кг</MetadataList.Detail></MetadataList.Row>
-              <MetadataList.Row><MetadataList.Term>Объём</MetadataList.Term><MetadataList.Detail>{data.cargo_volume_m3} м³</MetadataList.Detail></MetadataList.Row>
-              <MetadataList.Row><MetadataList.Term>Тип кузова</MetadataList.Term><MetadataList.Detail>{data.cargo_body_type}</MetadataList.Detail></MetadataList.Row>
+              <MetadataListItem label="Наименование">{data.cargo_name}</MetadataListItem>
+              <MetadataListItem label="Вес">{data.cargo_weight_kg.toLocaleString('ru-RU')} кг</MetadataListItem>
+              <MetadataListItem label="Объём">{data.cargo_volume_m3} м³</MetadataListItem>
+              <MetadataListItem label="Тип кузова">{data.cargo_body_type}</MetadataListItem>
               {data.cargo_description && (
-                <MetadataList.Row><MetadataList.Term>Описание</MetadataList.Term><MetadataList.Detail>{data.cargo_description}</MetadataList.Detail></MetadataList.Row>
+                <MetadataListItem label="Описание">{data.cargo_description}</MetadataListItem>
               )}
             </MetadataList>
           </Section>
 
-          <Section title="Параметры торгов">
+          <h2 className="text-lg font-semibold mb-2">Параметры торгов</h2>
+          <Section>
             <MetadataList>
-              <MetadataList.Row>
-                <MetadataList.Term>Текущая цена</MetadataList.Term>
-                <MetadataList.Detail className="font-bold">{data.trading.current_price.toLocaleString('ru-RU')} ₽</MetadataList.Detail>
-              </MetadataList.Row>
-              <MetadataList.Row>
-                <MetadataList.Term>Доступная цена</MetadataList.Term>
-                <MetadataList.Detail>{data.trading.available_price.toLocaleString('ru-RU')} ₽</MetadataList.Detail>
-              </MetadataList.Row>
-              <MetadataList.Row>
-                <MetadataList.Term>Шаг ставки</MetadataList.Term>
-                <MetadataList.Detail>{data.trading.step.toLocaleString('ru-RU')} ₽</MetadataList.Detail>
-              </MetadataList.Row>
+              <MetadataListItem label="Текущая цена">
+                <span className="font-bold">{data.trading.current_price.toLocaleString('ru-RU')} ₽</span>
+              </MetadataListItem>
+              <MetadataListItem label="Доступная цена">{data.trading.available_price.toLocaleString('ru-RU')} ₽</MetadataListItem>
+              <MetadataListItem label="Шаг ставки">{data.trading.step.toLocaleString('ru-RU')} ₽</MetadataListItem>
               {data.trading.min_price !== undefined && (
-                <MetadataList.Row><MetadataList.Term>Мин. цена</MetadataList.Term><MetadataList.Detail>{data.trading.min_price.toLocaleString('ru-RU')} ₽</MetadataList.Detail></MetadataList.Row>
+                <MetadataListItem label="Мин. цена">{data.trading.min_price.toLocaleString('ru-RU')} ₽</MetadataListItem>
               )}
               {data.trading.max_price !== undefined && (
-                <MetadataList.Row><MetadataList.Term>Макс. цена</MetadataList.Term><MetadataList.Detail>{data.trading.max_price.toLocaleString('ru-RU')} ₽</MetadataList.Detail></MetadataList.Row>
+                <MetadataListItem label="Макс. цена">{data.trading.max_price.toLocaleString('ru-RU')} ₽</MetadataListItem>
               )}
             </MetadataList>
           </Section>
 
-          <Section title="Организатор">
+          <h2 className="text-lg font-semibold mb-2">Организатор</h2>
+          <Section>
             <MetadataList>
-              <MetadataList.Row><MetadataList.Term>Наименование</MetadataList.Term><MetadataList.Detail>{data.organizer.name}</MetadataList.Detail></MetadataList.Row>
-              <MetadataList.Row><MetadataList.Term>Рейтинг</MetadataList.Term><MetadataList.Detail>{data.organizer.rating} ★</MetadataList.Detail></MetadataList.Row>
+              <MetadataListItem label="Наименование">{data.organizer.name}</MetadataListItem>
+              <MetadataListItem label="Рейтинг">{data.organizer.rating} ★</MetadataListItem>
               {!data.hide_points_address_and_contacts && data.organizer.phone && (
-                <MetadataList.Row><MetadataList.Term>Телефон</MetadataList.Term><MetadataList.Detail>{data.organizer.phone}</MetadataList.Detail></MetadataList.Row>
+                <MetadataListItem label="Телефон">{data.organizer.phone}</MetadataListItem>
               )}
               {!data.hide_points_address_and_contacts && data.organizer.email && (
-                <MetadataList.Row><MetadataList.Term>Email</MetadataList.Term><MetadataList.Detail>{data.organizer.email}</MetadataList.Detail></MetadataList.Row>
+                <MetadataListItem label="Email">{data.organizer.email}</MetadataListItem>
               )}
             </MetadataList>
           </Section>
 
           {data.payment_terms && (
-            <Section title="Условия оплаты">
-              <p className="text-sm text-primary">{data.payment_terms}</p>
-            </Section>
+            <>
+              <h2 className="text-lg font-semibold mb-2">Условия оплаты</h2>
+              <Section>
+                <p className="text-sm text-primary">{data.payment_terms}</p>
+              </Section>
+            </>
           )}
         </>
       )}

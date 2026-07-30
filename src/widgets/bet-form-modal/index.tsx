@@ -20,10 +20,18 @@ function createBetSchema(auction: AuctionDetail) {
   }
 
   if (auction.trading.min_price !== undefined) {
-    schema.price = (schema.price as z.ZodNumber).min(auction.trading.min_price, `Минимальная цена: ${auction.trading.min_price} ₽`)
+    schema.price = (schema.price as z.ZodNumber).min(auction.trading.min_price, `Минимальная цена: ${auction.trading.min_price.toLocaleString('ru-RU')} ₽`)
   }
   if (auction.trading.max_price !== undefined) {
-    schema.price = (schema.price as z.ZodNumber).max(auction.trading.max_price, `Максимальная цена: ${auction.trading.max_price} ₽`)
+    schema.price = (schema.price as z.ZodNumber).max(auction.trading.max_price, `Максимальная цена: ${auction.trading.max_price.toLocaleString('ru-RU')} ₽`)
+  }
+  if (auction.trading.step > 0 && auction.trading.min_price !== undefined) {
+    const min = auction.trading.min_price
+    const step = auction.trading.step
+    schema.price = (schema.price as z.ZodNumber).refine(
+      (val) => (val - min) % step === 0,
+      `Ставка должна быть кратна шагу (${step.toLocaleString('ru-RU')} ₽)`,
+    )
   }
 
   return z.object(schema)
@@ -34,11 +42,12 @@ type BetFormValues = z.infer<ReturnType<typeof createBetSchema>>
 interface Props {
   auction: AuctionDetail
   isPending: boolean
+  isOpen?: boolean
   onSubmit: (data: PlaceBetRequest) => Promise<void>
   onClose: () => void
 }
 
-export function BetFormModal({ auction, isPending, onSubmit, onClose }: Props) {
+export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: Props) {
   const betSchema = createBetSchema(auction)
   const {
     register,
@@ -76,8 +85,8 @@ export function BetFormModal({ auction, isPending, onSubmit, onClose }: Props) {
   }
 
   return (
-    <Dialog open onClose={onClose} purpose="form" title={auction.trading.my_bet ? 'Изменить ставку' : 'Сделать ставку'}>
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
+    <Dialog isOpen={isOpen ?? true} onOpenChange={(open) => { if (!open) onClose() }} purpose="form" title={auction.trading.my_bet ? 'Изменить ставку' : 'Сделать ставку'}>
+      <form noValidate onSubmit={handleSubmit(handleFormSubmit)}>
         <div className="space-y-4 p-4">
           <div className="text-sm text-secondary space-y-1">
             <p>Текущая цена: <strong>{auction.trading.current_price.toLocaleString('ru-RU')} ₽</strong></p>
@@ -99,8 +108,7 @@ export function BetFormModal({ auction, isPending, onSubmit, onClose }: Props) {
               max={auction.trading.max_price}
               step={auction.trading.step}
               onChange={(val) => setValue('price', Number(val))}
-              status={errors.price ? 'error' : undefined}
-              statusMessage={errors.price?.message}
+              status={errors.price ? { type: 'error', message: errors.price.message } : undefined}
               disabled={isPending}
             />
 
@@ -118,7 +126,7 @@ export function BetFormModal({ auction, isPending, onSubmit, onClose }: Props) {
 
           <div className="flex justify-end gap-2">
             <Button label="Отмена" variant="secondary" onClick={onClose} disabled={isPending} />
-            <Button label={isPending ? 'Отправка...' : 'Подтвердить'} variant="primary" type="submit" loading={isPending} />
+            <Button label={isPending ? 'Отправка...' : 'Подтвердить'} variant="primary" type="submit" isLoading={isPending} />
           </div>
         </div>
       </form>

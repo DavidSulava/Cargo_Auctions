@@ -4,7 +4,7 @@ export default defineConfig({
   testDir: './e2e',
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:3000/Cargo_Auctions/',
     reuseExistingServer: true,
   },
   use: {

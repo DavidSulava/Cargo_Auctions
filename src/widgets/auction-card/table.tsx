@@ -1,6 +1,5 @@
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, Link } from '@tanstack/react-router'
 import { Badge } from '@astryxdesign/core/Badge'
-import { Link } from '@astryxdesign/core/Link'
 import type { AuctionListItem } from '~/entities/auction/types'
 
 interface Props {
@@ -59,7 +58,7 @@ export function AuctionListTable({ items }: Props) {
                 onClick={() => navigate({ to: `/auctions/${item.uuid}` })}
               >
                 <td className="p-3">
-                  <Link href={`/auctions/${item.uuid}`}>{item.cargo_num}</Link>
+                  <Link to={`/auctions/${item.uuid}`}>{item.cargo_num}</Link>
                 </td>
                 <td className="p-3">
                   <Badge variant={AUCTION_TYPE_COLORS[item.auc_type] ?? 'neutral'}>

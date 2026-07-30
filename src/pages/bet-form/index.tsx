@@ -12,7 +12,7 @@ export default function BetFormPage() {
   const navigate = useNavigate()
   const { data: auction, isLoading, isError } = useAuctionDetail(uuid)
   const { mutateAsync: placeBet, isPending } = usePlaceBet(uuid)
-  const { toast } = useToast()
+  const toast = useToast()
 
   if (isLoading) {
     return (
@@ -51,13 +51,13 @@ export default function BetFormPage() {
       onSubmit={async (data) => {
         try {
           await placeBet(data)
-          toast.info('Ставка успешно принята')
+          toast({ body: 'Ставка успешно принята', type: 'info' })
           navigate({ to: `/auctions/${uuid}` })
         } catch (err: any) {
           if (err?.status === 422) {
-            toast.error(err?.message ?? 'Ошибка валидации')
+            toast({ body: err?.message ?? 'Ошибка валидации', type: 'error' })
           } else {
-            toast.error('Не удалось разместить ставку')
+            toast({ body: 'Не удалось разместить ставку', type: 'error' })
           }
           throw err
         }
