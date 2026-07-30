@@ -3,6 +3,7 @@ import { useAuctionDetail } from '~/entities/auction/queries'
 import { useBetList } from '~/entities/bet/queries'
 import { Skeleton } from '@astryxdesign/core/Skeleton'
 import { Badge } from '@astryxdesign/core/Badge'
+import { Table, proportional, pixel } from '@astryxdesign/core/Table'
 import { Button } from '@astryxdesign/core/Button'
 import { Banner } from '@astryxdesign/core/Banner'
 import { Section } from '@astryxdesign/core/Section'
@@ -173,56 +174,72 @@ export default function AuctionDetailPage() {
           <Banner status="error" title="Ошибка загрузки ставок" />
         ) : betsQuery.data && betsQuery.data.items.length > 0 ? (
           <Section>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="p-3 text-left text-sm font-medium text-secondary">#</th>
-                    <th className="p-3 text-left text-sm font-medium text-secondary">Перевозчик</th>
-                    <th className="p-3 text-left text-sm font-medium text-secondary">Цена</th>
-                    <th className="p-3 text-left text-sm font-medium text-secondary">С НДС / без НДС</th>
-                    <th className="p-3 text-left text-sm font-medium text-secondary">Статус</th>
-                    <th className="p-3 text-left text-sm font-medium text-secondary">Дата</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {betsQuery.data.items.map((bet) => (
-                    <tr key={bet.id} className="border-b border-border hover:bg-surface">
-                      <td className="p-3 text-sm">{bet.rank}</td>
-                      <td className="p-3">
-                        <div className="flex items-center gap-2">
-                          <Avatar name={bet.carrier_name} size="sm" />
-                          <span className="text-sm">{bet.carrier_name}</span>
-                        </div>
-                      </td>
-                      <td className="p-3 text-sm font-medium">
-                        {bet.price.toLocaleString('ru-RU')} ₽
-                      </td>
-                      <td className="p-3 text-sm">
-                        <div>{bet.price_with_nds.toLocaleString('ru-RU')} ₽ с НДС</div>
-                        <div className="text-secondary">{bet.price_without_nds.toLocaleString('ru-RU')} ₽ без НДС</div>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex gap-1 flex-wrap">
-                          {bet.is_winner && <Badge variant="success">Победитель</Badge>}
-                          {bet.is_cancelled && (
-                            <Badge variant="error" title={bet.cancel_reason}>
-                              Отменена
-                            </Badge>
-                          )}
-                          {!bet.is_winner && !bet.is_cancelled && (
-                            <Badge variant="neutral">Активна</Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-3 text-sm text-secondary">
-                        {new Date(bet.created_at).toLocaleString('ru-RU')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table
+              data={betsQuery.data.items}
+              idKey="id"
+              columns={[
+                { key: 'rank', header: '#', width: pixel(60) },
+                {
+                  key: 'carrier',
+                  header: 'Перевозчик',
+                  width: proportional(1),
+                  renderCell: (bet) => (
+                    <div className="flex items-center gap-2">
+                      <Avatar name={bet.carrier_name} size="sm" />
+                      <span className="text-sm">{bet.carrier_name}</span>
+                    </div>
+                  ),
+                },
+                {
+                  key: 'price',
+                  header: 'Цена',
+                  width: pixel(120),
+                  renderCell: (bet) => (
+                    <span className="font-medium">{bet.price.toLocaleString('ru-RU')} ₽</span>
+                  ),
+                },
+                {
+                  key: 'nds',
+                  header: 'С НДС / без НДС',
+                  width: proportional(1),
+                  renderCell: (bet) => (
+                    <>
+                      <div>{bet.price_with_nds.toLocaleString('ru-RU')} ₽ с НДС</div>
+                      <div className="text-secondary">{bet.price_without_nds.toLocaleString('ru-RU')} ₽ без НДС</div>
+                    </>
+                  ),
+                },
+                {
+                  key: 'status',
+                  header: 'Статус',
+                  width: proportional(0.8),
+                  renderCell: (bet) => (
+                    <div className="flex gap-1 flex-wrap">
+                      {bet.is_winner && <Badge variant="success">Победитель</Badge>}
+                      {bet.is_cancelled && (
+                        <Badge variant="error" title={bet.cancel_reason}>
+                          Отменена
+                        </Badge>
+                      )}
+                      {!bet.is_winner && !bet.is_cancelled && (
+                        <Badge variant="neutral">Активна</Badge>
+                      )}
+                    </div>
+                  ),
+                },
+                {
+                  key: 'created_at',
+                  header: 'Дата',
+                  width: pixel(160),
+                  renderCell: (bet) => (
+                    <span className="text-secondary">{new Date(bet.created_at).toLocaleString('ru-RU')}</span>
+                  ),
+                },
+              ]}
+              density="balanced"
+              dividers="rows"
+              hasHover
+            />
           </Section>
         ) : (
           <EmptyState
