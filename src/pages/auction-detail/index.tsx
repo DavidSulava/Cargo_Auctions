@@ -49,9 +49,11 @@ export default function AuctionDetailPage() {
   if (isError || !data) {
     return (
       <div className="p-4">
-        <Banner status="error" title="Аукцион не найден">
-          Запрошенный аукцион не существует или был удалён.
-        </Banner>
+        <div className="content-enter">
+          <Banner status="error" title="Аукцион не найден">
+            Запрошенный аукцион не существует или был удалён.
+          </Banner>
+        </div>
         <Button label="Вернуться к списку" variant="secondary" className="mt-4" onClick={() => navigate({ to: '/' })} />
       </div>
     )
@@ -60,7 +62,7 @@ export default function AuctionDetailPage() {
   const statusBadge = STATUS_BADGE[data.status] ?? { variant: 'neutral' as const, label: data.status }
 
   return (
-    <div className="p-4 space-y-6 max-w-5xl">
+    <div className="content-enter p-4 space-y-6 max-w-5xl" key={uuid}>
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -86,9 +88,11 @@ export default function AuctionDetailPage() {
       {tab === 'detail' && (
         <>
           {data.hide_points_address_and_contacts && (
-            <Banner status="warning" title="Информация скрыта">
-              Контактные данные и адреса точек скрыты организатором.
-            </Banner>
+            <div className="content-enter">
+              <Banner status="warning" title="Информация скрыта">
+                Контактные данные и адреса точек скрыты организатором.
+              </Banner>
+            </div>
           )}
 
           <h2 className="text-lg font-semibold mb-2">Маршрут</h2>
@@ -161,9 +165,11 @@ export default function AuctionDetailPage() {
 
       {tab === 'bets' && (
         data.hide_bets_history ? (
-          <Banner status="info" title="История ставок скрыта">
-            Организатор скрыл историю ставок для этого аукциона.
-          </Banner>
+          <div className="content-enter">
+            <Banner status="info" title="История ставок скрыта">
+              Организатор скрыл историю ставок для этого аукциона.
+            </Banner>
+          </div>
         ) : betsQuery.isLoading ? (
           <div className="p-4 space-y-3">
             <Skeleton width="100%" height="40px" />
@@ -171,7 +177,9 @@ export default function AuctionDetailPage() {
             <Skeleton width="100%" height="40px" />
           </div>
         ) : betsQuery.isError ? (
-          <Banner status="error" title="Ошибка загрузки ставок" />
+          <div className="content-enter">
+            <Banner status="error" title="Ошибка загрузки ставок" />
+          </div>
         ) : betsQuery.data && betsQuery.data.items.length > 0 ? (
           <Section>
             <Table
@@ -242,10 +250,12 @@ export default function AuctionDetailPage() {
             />
           </Section>
         ) : (
-          <EmptyState
-            title="Ставок пока нет"
-            description="На этот аукцион ещё никто не сделал ставку"
-          />
+          <div className="content-enter">
+            <EmptyState
+              title="Ставок пока нет"
+              description="На этот аукцион ещё никто не сделал ставку"
+            />
+          </div>
         )
       )}
     </div>

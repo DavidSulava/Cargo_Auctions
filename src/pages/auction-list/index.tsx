@@ -99,13 +99,15 @@ export default function AuctionListPage() {
             <Skeleton width="100%" height="40px" />
           </div>
         ) : data && data.items.length === 0 ? (
-          <EmptyState
-            title="Аукционы не найдены"
-            description="Попробуйте изменить параметры фильтров"
-            action={{ label: 'Сбросить фильтры', onClick: clearFilters }}
-          />
+          <div className="content-enter">
+            <EmptyState
+              title="Аукционы не найдены"
+              description="Попробуйте изменить параметры фильтров"
+              action={{ label: 'Сбросить фильтры', onClick: clearFilters }}
+            />
+          </div>
         ) : data ? (
-          <>
+          <div className="content-enter" key={filters.page ?? 1}>
             <AuctionListTable items={data.items} />
             {totalPages > 1 && (
               <Pagination
@@ -117,7 +119,7 @@ export default function AuctionListPage() {
                 onChange={setPage}
               />
             )}
-          </>
+          </div>
         ) : null}
       </Section>
     </div>

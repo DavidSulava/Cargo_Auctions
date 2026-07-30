@@ -1,4 +1,4 @@
-import { createRootRouteWithContext, createRoute, createRouter, Outlet } from '@tanstack/react-router'
+import { createRootRouteWithContext, createRoute, createRouter, Outlet, useRouter } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
 import { Suspense, lazy } from 'react'
 import { AppShell } from '@astryxdesign/core/AppShell'
@@ -26,28 +26,33 @@ function PageLoader() {
 }
 
 const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  component: () => (
-    <AppShell
-      topNav={
-        <TopNav
-          heading={<TopNavHeading heading="Грузовые аукционы" />}
-        />
-      }
-      sideNav={
-        <SideNav>
-          <SideNavSection title="Меню">
-            <SideNavItem label="Аукционы" href={import.meta.env.BASE_URL} />
-          </SideNavSection>
-        </SideNav>
-      }
-    >
-      <Suspense fallback={<PageLoader />}>
-        <Outlet />
-      </Suspense>
-    </AppShell>
-  ),
+  component: () => {
+    const router = useRouter()
+    return (
+      <AppShell
+        topNav={
+          <TopNav
+            heading={<TopNavHeading heading="Грузовые аукционы" />}
+          />
+        }
+        sideNav={
+          <SideNav>
+            <SideNavSection title="Меню">
+              <SideNavItem label="Аукционы" href={import.meta.env.BASE_URL} />
+            </SideNavSection>
+          </SideNav>
+        }
+      >
+        <Suspense fallback={<PageLoader />}>
+          <div key={router.state.location.pathname} className="page-enter">
+            <Outlet />
+          </div>
+        </Suspense>
+      </AppShell>
+    )
+  },
   notFoundComponent: () => (
-    <div className="flex items-center justify-center h-[60vh] text-primary">
+    <div className="content-enter flex items-center justify-center h-[60vh] text-primary">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-2">404</h1>
         <p>Страница не найдена</p>

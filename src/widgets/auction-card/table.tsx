@@ -40,6 +40,7 @@ export function AuctionListTable({ items }: Props) {
       htmlProps: {
         ...props.htmlProps,
         onClick: () => navigate({ to: `/auctions/${item.uuid}` }),
+        className: 'auction-row',
         style: { ...props.htmlProps.style, cursor: 'pointer' },
       },
     }),

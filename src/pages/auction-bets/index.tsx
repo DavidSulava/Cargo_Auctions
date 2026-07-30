@@ -26,7 +26,9 @@ export default function AuctionBetsPage() {
   if (isError) {
     return (
       <div className="p-4">
-        <Banner status="error" title="Ошибка загрузки ставок" />
+        <div className="content-enter">
+          <Banner status="error" title="Ошибка загрузки ставок" />
+        </div>
       </div>
     )
   }
@@ -37,16 +39,18 @@ export default function AuctionBetsPage() {
         <div className="flex items-center gap-2 mb-4">
           <Button label="← Назад к аукциону" variant="ghost" onClick={() => navigate({ to: `/auctions/${uuid}` })} />
         </div>
-        <EmptyState
-          title="Ставок пока нет"
-          description="На этот аукцион ещё никто не сделал ставку"
-        />
+        <div className="content-enter">
+          <EmptyState
+            title="Ставок пока нет"
+            description="На этот аукцион ещё никто не сделал ставку"
+          />
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="content-enter p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button label="← Назад" variant="ghost" onClick={() => navigate({ to: `/auctions/${uuid}` })} />

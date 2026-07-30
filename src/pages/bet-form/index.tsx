@@ -26,7 +26,9 @@ export default function BetFormPage() {
   if (isError || !auction) {
     return (
       <div className="p-4">
-        <Banner status="error" title="Аукцион не найден" />
+        <div className="content-enter">
+          <Banner status="error" title="Аукцион не найден" />
+        </div>
         <Button label="Назад" variant="secondary" className="mt-4" onClick={() => navigate({ to: `/auctions/${uuid}` })} />
       </div>
     )
@@ -35,9 +37,11 @@ export default function BetFormPage() {
   if (!auction.trading.can_set_bet) {
     return (
       <div className="p-4">
-        <Banner status="warning" title="Ставки закрыты">
-          На этот аукцион нельзя сделать ставку.
-        </Banner>
+        <div className="content-enter">
+          <Banner status="warning" title="Ставки закрыты">
+            На этот аукцион нельзя сделать ставку.
+          </Banner>
+        </div>
         <Button label="Назад к аукциону" variant="secondary" className="mt-4" onClick={() => navigate({ to: `/auctions/${uuid}` })} />
       </div>
     )

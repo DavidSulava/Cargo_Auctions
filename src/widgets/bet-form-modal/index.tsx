@@ -7,7 +7,7 @@ import { CheckboxInput } from '@astryxdesign/core/CheckboxInput'
 import { Button } from '@astryxdesign/core/Button'
 import { FormLayout } from '@astryxdesign/core/FormLayout'
 import { Banner } from '@astryxdesign/core/Banner'
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { AuctionDetail } from '~/entities/auction/types'
 import type { PlaceBetRequest } from '~/entities/bet/types'
 import { ApiError } from '~/shared/api/client'
@@ -66,6 +66,15 @@ export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: 
 
   const price = watch('price')
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [closing, setClosing] = useState(false)
+
+  const handleClose = useCallback(() => {
+    if (closing) return
+    setClosing(true)
+    setTimeout(() => {
+      onClose()
+    }, 120)
+  }, [closing, onClose])
 
   const handleFormSubmit = async (data: BetFormValues) => {
     setSubmitError(null)
@@ -85,9 +94,12 @@ export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: 
   }
 
   return (
-    <Dialog isOpen={isOpen ?? true} onOpenChange={(open) => { if (!open) onClose() }} purpose="form" title={auction.trading.my_bet ? 'Изменить ставку' : 'Сделать ставку'}>
+    <Dialog isOpen={isOpen ?? true} onOpenChange={(open) => { if (!open) handleClose() }} purpose="form" title={auction.trading.my_bet ? 'Изменить ставку' : 'Сделать ставку'}>
       <form noValidate onSubmit={handleSubmit(handleFormSubmit)}>
-        <div className="space-y-4 p-4">
+        <div
+          className="space-y-4 p-4 bet-form-content"
+          data-closing={closing || undefined}
+        >
           <div className="text-sm text-secondary space-y-1">
             <p>Текущая цена: <strong>{auction.trading.current_price.toLocaleString('ru-RU')} ₽</strong></p>
             <p>Доступная цена: <strong>{auction.trading.available_price.toLocaleString('ru-RU')} ₽</strong></p>
@@ -125,7 +137,7 @@ export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: 
           </FormLayout>
 
           <div className="flex justify-end gap-2">
-            <Button label="Отмена" variant="secondary" onClick={onClose} disabled={isPending} />
+            <Button label="Отмена" variant="secondary" onClick={handleClose} disabled={isPending} />
             <Button label={isPending ? 'Отправка...' : 'Подтвердить'} variant="primary" type="submit" isLoading={isPending} />
           </div>
         </div>
