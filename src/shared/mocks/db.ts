@@ -1,12 +1,6 @@
-import type { AuctionListItem, AuctionDetail, AuctionType, AuctionStatus, TradingStatus, CargoBodyType } from '~/entities/auction/types'
-import type { Bet } from '~/entities/bet/types'
-
-const CITIES = [
-  'Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань',
-  'Нижний Новгород', 'Челябинск', 'Самара', 'Омск', 'Ростов-на-Дону',
-  'Уфа', 'Красноярск', 'Воронеж', 'Пермь', 'Волгоград',
-  'Краснодар', 'Саратов', 'Тюмень', 'Тольятти', 'Ижевск',
-]
+import type { AuctionListItem, AuctionType, AuctionStatus, TradingStatus, CargoBodyType } from './types'
+import type { Bet } from './types'
+import { CITIES } from '~/shared/lib/cities'
 
 const CARGO_NAMES = [
   'Строительные материалы', 'Продукты питания', 'Оборудование',
@@ -127,8 +121,6 @@ MOCK_ITEMS.forEach((item) => {
 })
 
 export type MockAuction = (typeof MOCK_ITEMS)[number]
-
-export { CITIES }
 
 export const db = {
   auctions: [...MOCK_ITEMS] as MockAuction[],

@@ -3,9 +3,11 @@ import { fetchAuctions, fetchAuctionDetail } from './api'
 import type { AuctionFilters } from './types'
 
 export const auctionKeys = {
-  all: ['auctions'] as const,
-  list: (filters: AuctionFilters) => ['auctions', 'list', filters] as const,
-  detail: (uuid: string) => ['auctions', 'detail', uuid] as const,
+  all: () => ['auctions'] as const,
+  lists: () => [...auctionKeys.all(), 'list'] as const,
+  list: (filters: AuctionFilters) => [...auctionKeys.lists(), filters] as const,
+  details: () => [...auctionKeys.all(), 'detail'] as const,
+  detail: (uuid: string) => [...auctionKeys.details(), uuid] as const,
 }
 
 export function useAuctionList(filters: AuctionFilters) {

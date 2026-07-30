@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { CITIES } from '../db'
+import { CITIES } from '~/shared/lib/cities'
 
 export const cityHandlers = [
   http.get('/api/cities', ({ request }) => {

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { useAuctionDetail } from '~/entities/auction/queries'
-import { usePlaceBet } from '~/entities/bet/queries'
+import { usePlaceBet } from './api/use-place-bet'
 import { BetFormModal } from '~/widgets/bet-form-modal'
 import { Banner } from '@astryxdesign/core/Banner'
 import { Button } from '@astryxdesign/core/Button'

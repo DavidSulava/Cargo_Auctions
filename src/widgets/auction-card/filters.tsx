@@ -7,7 +7,7 @@ import { CheckboxInput } from '@astryxdesign/core/CheckboxInput'
 import { Button } from '@astryxdesign/core/Button'
 import { FormLayout } from '@astryxdesign/core/FormLayout'
 import { Section } from '@astryxdesign/core/Section'
-import { CITIES } from '~/shared/mocks/db'
+import { CITIES } from '~/shared/lib/cities'
 import type { FilterParams } from '~/shared/lib/filter-schema'
 
 interface Props {
