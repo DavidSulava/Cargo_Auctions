@@ -4,7 +4,7 @@ import { db } from '../db'
 export const auctionHandlers = [
   http.post('/api/auctions/list', async ({ request }) => {
     const body = await request.json().catch(() => ({})) as any
-    const result = db.getAuctions(body)
+    const result = db.listAuctions(body)
     return HttpResponse.json(result)
   }),
 
