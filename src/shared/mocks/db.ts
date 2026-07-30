@@ -204,19 +204,7 @@ export function createMockRepository(): AuctionRepository {
 
   return {
     listAuctions(filters) {
-      const enriched = auctions.map((item) => {
-        const myBets = bets.get(item.uuid) ?? []
-        const myBet = myBets.find((b) => b.carrier_name === 'Вы')
-        const is_bidder = !!myBet
-        let trading_status: TradingStatus
-        if (myBet) {
-          trading_status = myBet.is_winner ? 'Leading' : 'Losing'
-        } else {
-          trading_status = 'None'
-        }
-        return { ...item, is_bidder, trading_status }
-      })
-      const filtered = filterAuctions(enriched, filters)
+      const filtered = filterAuctions(auctions, filters)
       const page = filters.page ?? 1
       const perPage = filters.per_page ?? 10
       const total = filtered.length
