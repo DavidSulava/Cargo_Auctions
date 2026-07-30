@@ -1,57 +1,65 @@
 import { describe, it, expect } from 'vitest'
-import { z } from 'zod'
+import type { AuctionTrading } from '~/entities/auction/types'
+import { createBetSchema } from './bet-schema'
 
-describe('Bet validation schema', () => {
-  function createBetSchema(opts: { min?: number; max?: number; step?: number }) {
-    let priceSchema = z.number({ required_error: 'Цена обязательна' })
-      .positive('Цена должна быть больше 0')
-
-    if (opts.min !== undefined) {
-      priceSchema = priceSchema.min(opts.min)
-    }
-    if (opts.max !== undefined) {
-      priceSchema = priceSchema.max(opts.max)
-    }
-
-    return z.object({
-      price: priceSchema,
-      has_nds: z.boolean().optional().default(true),
-    })
+function makeTrading(overrides: Partial<AuctionTrading> = {}): AuctionTrading {
+  return {
+    can_set_bet: true,
+    current_price: 50000,
+    available_price: 70000,
+    step: 1000,
+    ...overrides,
   }
+}
 
-  it('validates positive price', () => {
-    const schema = createBetSchema({})
+describe('createBetSchema', () => {
+  it('rejects negative price', () => {
+    const schema = createBetSchema(makeTrading())
     const result = schema.safeParse({ price: -100 })
     expect(result.success).toBe(false)
   })
 
   it('accepts valid price', () => {
-    const schema = createBetSchema({})
+    const schema = createBetSchema(makeTrading())
     const result = schema.safeParse({ price: 15000 })
     expect(result.success).toBe(true)
   })
 
-  it('enforces min price', () => {
-    const schema = createBetSchema({ min: 10000 })
+  it('enforces min_price', () => {
+    const schema = createBetSchema(makeTrading({ min_price: 10000 }))
     const result = schema.safeParse({ price: 5000 })
     expect(result.success).toBe(false)
   })
 
-  it('enforces max price', () => {
-    const schema = createBetSchema({ max: 50000 })
+  it('enforces max_price', () => {
+    const schema = createBetSchema(makeTrading({ max_price: 50000 }))
     const result = schema.safeParse({ price: 75000 })
     expect(result.success).toBe(false)
   })
 
   it('defaults has_nds to true', () => {
-    const schema = createBetSchema({})
+    const schema = createBetSchema(makeTrading())
     const result = schema.parse({ price: 15000 })
     expect(result.has_nds).toBe(true)
   })
 
   it('accepts price within range', () => {
-    const schema = createBetSchema({ min: 5000, max: 50000 })
+    const schema = createBetSchema(makeTrading({ min_price: 5000, max_price: 50000 }))
     const result = schema.safeParse({ price: 25000 })
+    expect(result.success).toBe(true)
+  })
+
+  it('enforces step multiple when step > 0 and min_price is set', () => {
+    const schema = createBetSchema(makeTrading({ min_price: 10000, step: 1000 }))
+    const valid = schema.safeParse({ price: 15000 })
+    const invalid = schema.safeParse({ price: 15100 })
+    expect(valid.success).toBe(true)
+    expect(invalid.success).toBe(false)
+  })
+
+  it('skips step validation when min_price is not set', () => {
+    const schema = createBetSchema(makeTrading({ min_price: undefined, step: 1000 }))
+    const result = schema.safeParse({ price: 15100 })
     expect(result.success).toBe(true)
   })
 })

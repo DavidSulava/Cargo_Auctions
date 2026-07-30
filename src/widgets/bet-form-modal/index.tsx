@@ -1,6 +1,5 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { Dialog } from '@astryxdesign/core/Dialog'
 import { NumberInput } from '@astryxdesign/core/NumberInput'
 import { CheckboxInput } from '@astryxdesign/core/CheckboxInput'
@@ -11,33 +10,7 @@ import { useState } from 'react'
 import type { AuctionDetail } from '~/entities/auction/types'
 import type { PlaceBetRequest } from '~/entities/bet/types'
 import { ApiError } from '~/shared/api/client'
-
-function createBetSchema(auction: AuctionDetail) {
-  const schema: Record<string, z.ZodTypeAny> = {
-    price: z.number({ required_error: 'Цена обязательна' })
-      .positive('Цена должна быть больше 0'),
-    has_nds: z.boolean().optional().default(true),
-  }
-
-  if (auction.trading.min_price !== undefined) {
-    schema.price = (schema.price as z.ZodNumber).min(auction.trading.min_price, `Минимальная цена: ${auction.trading.min_price.toLocaleString('ru-RU')} ₽`)
-  }
-  if (auction.trading.max_price !== undefined) {
-    schema.price = (schema.price as z.ZodNumber).max(auction.trading.max_price, `Максимальная цена: ${auction.trading.max_price.toLocaleString('ru-RU')} ₽`)
-  }
-  if (auction.trading.step > 0 && auction.trading.min_price !== undefined) {
-    const min = auction.trading.min_price
-    const step = auction.trading.step
-    schema.price = (schema.price as z.ZodNumber).refine(
-      (val) => (val - min) % step === 0,
-      `Ставка должна быть кратна шагу (${step.toLocaleString('ru-RU')} ₽)`,
-    )
-  }
-
-  return z.object(schema)
-}
-
-type BetFormValues = z.infer<ReturnType<typeof createBetSchema>>
+import { createBetSchema, type BetFormValues } from './bet-schema'
 
 interface Props {
   auction: AuctionDetail
@@ -48,7 +21,7 @@ interface Props {
 }
 
 export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: Props) {
-  const betSchema = createBetSchema(auction)
+  const betSchema = createBetSchema(auction.trading)
   const {
     register,
     handleSubmit,
