@@ -36,7 +36,7 @@ const AUCTION_TYPE_OPTIONS = [
 
 const CITY_OPTIONS = [
   { label: 'Любой город', value: '' },
-  ...CITIES.map((c) => ({ label: c, value: c })),
+  ...CITIES.map((c: string) => ({ label: c, value: c })),
 ]
 
 function boundValue(value: unknown): string {
@@ -98,21 +98,21 @@ export function AuctionFiltersPanel({ filters, onFilterChange, onClear, resetKey
 
           <DateInput
             label="Дата погрузки от"
-            value={filters.load_date_from ?? ''}
+            value={filters.load_date_from as `${number}${number}${number}${number}-${number}${number}-${number}${number}` ?? ''}
             onChange={(val) => onFilterChange('load_date_from', val)}
             hasClear
           />
 
           <DateInput
             label="Дата погрузки до"
-            value={filters.load_date_to ?? ''}
+            value={filters.load_date_to as `${number}${number}${number}${number}-${number}${number}-${number}${number}` ?? ''}
             onChange={(val) => onFilterChange('load_date_to', val)}
             hasClear
           />
 
           <NumberInput
             label="Цена от"
-            value={filters.price_from ?? ''}
+            value={filters.price_from}
             min={0}
             onChange={(val) => onFilterChange('price_from', val || undefined)}
             hasClear
@@ -120,7 +120,7 @@ export function AuctionFiltersPanel({ filters, onFilterChange, onClear, resetKey
 
           <NumberInput
             label="Цена до"
-            value={filters.price_to ?? ''}
+            value={filters.price_to}
             min={0}
             onChange={(val) => onFilterChange('price_to', val || undefined)}
             hasClear

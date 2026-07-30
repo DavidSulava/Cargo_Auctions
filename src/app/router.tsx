@@ -1,5 +1,6 @@
 import { createRootRouteWithContext, createRoute, createRouter, Outlet, Link } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
+import { queryClient } from './query-client'
 import { Suspense, lazy } from 'react'
 import { AppShell } from '@astryxdesign/core/AppShell'
 import { TopNav } from '@astryxdesign/core/TopNav'
@@ -97,6 +98,7 @@ const basepath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_UR
 export const router = createRouter({
   routeTree,
   basepath,
+  context: { queryClient },
   defaultPreload: 'intent',
   defaultPreloadDelay: 50,
 })

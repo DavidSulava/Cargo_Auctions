@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Providers } from '~/app/providers'
-import './app/index.css'
+import './app/styles/global.css'
 
 async function start() {
   if (import.meta.env.DEV && !navigator.webdriver) {

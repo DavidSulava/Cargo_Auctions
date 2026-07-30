@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { useAuctionDetail } from '~/entities/auction/queries'
 import { useBetList } from '~/entities/bet/queries'
+import type { AuctionDetail } from '~/entities/auction/types'
 import { Skeleton } from '@astryxdesign/core/Skeleton'
 import { Badge } from '@astryxdesign/core/Badge'
 import { Table, proportional, pixel } from '@astryxdesign/core/Table'
@@ -31,7 +32,7 @@ const AUCTION_TYPE_BADGE: Record<string, { variant: 'purple' | 'teal' | 'pink' |
 export default function AuctionDetailPage() {
   const { uuid } = useParams({ from: '/auctions/$uuid' })
   const navigate = useNavigate()
-  const backSearch = Object.fromEntries(new URLSearchParams(window.location.search)) as Record<string, unknown>
+  const listSearch = Object.fromEntries(new URLSearchParams(window.location.search)) as Record<string, unknown>
   const { data, isLoading, isError } = useAuctionDetail(uuid)
   const [tab, setTab] = useState('detail')
   const betsQuery = useBetList(tab === 'bets' ? uuid : '')
@@ -67,10 +68,8 @@ export default function AuctionDetailPage() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Badge variant={AUCTION_TYPE_BADGE[data.auc_type]?.variant ?? 'neutral'}>
-              {data.auc_type}
-            </Badge>
-            <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+            <Badge variant={AUCTION_TYPE_BADGE[data.auc_type]?.variant ?? 'neutral'} label={data.auc_type} />
+            <Badge variant={statusBadge.variant} label={statusBadge.label} />
           </div>
           <h1 className="text-2xl font-bold text-primary">{data.cargo_num}</h1>
         </div>
@@ -99,7 +98,7 @@ export default function AuctionDetailPage() {
           <h2 className="text-lg font-semibold mb-2">Маршрут</h2>
           <Section>
             <MetadataList>
-              {data.route.map((point, i) => (
+              {(data.route as AuctionDetail['route']).map((point, i) => (
                 <MetadataListItem key={point.id} label={i === 0 ? 'Погрузка' : 'Выгрузка'}>
                   <div>{point.city}</div>
                   {point.address && <div className="text-secondary">{point.address}</div>}
@@ -184,7 +183,7 @@ export default function AuctionDetailPage() {
         ) : betsQuery.data && betsQuery.data.items.length > 0 ? (
           <Section>
             <Table
-              data={betsQuery.data.items}
+              data={betsQuery.data.items as unknown as Record<string, unknown>[]}
               idKey="id"
               columns={[
                 { key: 'rank', header: '#', width: pixel(60) },
@@ -192,10 +191,10 @@ export default function AuctionDetailPage() {
                   key: 'carrier',
                   header: 'Перевозчик',
                   width: proportional(1),
-                  renderCell: (bet) => (
+                  renderCell: (bet: Record<string, unknown>) => (
                     <div className="flex items-center gap-2">
-                      <Avatar name={bet.carrier_name} size="sm" />
-                      <span className="text-sm">{bet.carrier_name}</span>
+                      <Avatar name={bet.carrier_name as string} size="sm" />
+                      <span className="text-sm">{bet.carrier_name as string}</span>
                     </div>
                   ),
                 },
@@ -203,18 +202,18 @@ export default function AuctionDetailPage() {
                   key: 'price',
                   header: 'Цена',
                   width: pixel(120),
-                  renderCell: (bet) => (
-                    <span className="font-medium">{bet.price.toLocaleString('ru-RU')} ₽</span>
+                  renderCell: (bet: Record<string, unknown>) => (
+                    <span className="font-medium">{(bet.price as number).toLocaleString('ru-RU')} ₽</span>
                   ),
                 },
                 {
                   key: 'nds',
                   header: 'С НДС / без НДС',
                   width: proportional(1),
-                  renderCell: (bet) => (
+                  renderCell: (bet: Record<string, unknown>) => (
                     <>
-                      <div>{bet.price_with_nds.toLocaleString('ru-RU')} ₽ с НДС</div>
-                      <div className="text-secondary">{bet.price_without_nds.toLocaleString('ru-RU')} ₽ без НДС</div>
+                      <div>{(bet.price_with_nds as number).toLocaleString('ru-RU')} ₽ с НДС</div>
+                      <div className="text-secondary">{(bet.price_without_nds as number).toLocaleString('ru-RU')} ₽ без НДС</div>
                     </>
                   ),
                 },
@@ -222,16 +221,14 @@ export default function AuctionDetailPage() {
                   key: 'status',
                   header: 'Статус',
                   width: proportional(0.8),
-                  renderCell: (bet) => (
+                  renderCell: (bet: Record<string, unknown>) => (
                     <div className="flex gap-1 flex-wrap">
-                      {bet.is_winner && <Badge variant="success">Победитель</Badge>}
-                      {bet.is_cancelled && (
-                        <Badge variant="error" title={bet.cancel_reason}>
-                          Отменена
-                        </Badge>
+                      {bet.is_winner as boolean && <Badge variant="success" label="Победитель" />}
+                      {bet.is_cancelled as boolean && (
+                        <Badge variant="error" label="Отменена" />
                       )}
-                      {!bet.is_winner && !bet.is_cancelled && (
-                        <Badge variant="neutral">Активна</Badge>
+                      {!(bet.is_winner as boolean) && !(bet.is_cancelled as boolean) && (
+                        <Badge variant="neutral" label="Активна" />
                       )}
                     </div>
                   ),
@@ -240,8 +237,8 @@ export default function AuctionDetailPage() {
                   key: 'created_at',
                   header: 'Дата',
                   width: pixel(160),
-                  renderCell: (bet) => (
-                    <span className="text-secondary">{new Date(bet.created_at).toLocaleString('ru-RU')}</span>
+                  renderCell: (bet: Record<string, unknown>) => (
+                    <span className="text-secondary">{new Date(bet.created_at as string).toLocaleString('ru-RU')}</span>
                   ),
                 },
               ]}

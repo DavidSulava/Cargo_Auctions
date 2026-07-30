@@ -322,6 +322,7 @@ export function createMockRepository(): AuctionRepository {
       }
 
       return {
+        id: existingBetIndex !== -1 ? existing[existingBetIndex].id : `bet-${auctionUuid}-${Date.now()}`,
         price: data.price,
         has_nds: data.has_nds ?? true,
         is_winner: true,

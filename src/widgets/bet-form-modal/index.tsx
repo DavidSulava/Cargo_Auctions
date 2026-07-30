@@ -23,7 +23,6 @@ interface Props {
 export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: Props) {
   const betSchema = createBetSchema(auction.trading)
   const {
-    register,
     handleSubmit,
     watch,
     setValue,
@@ -47,25 +46,25 @@ export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: 
     setTimeout(onClose, 120)
   }
 
-  const handleFormSubmit = async (data: BetFormValues) => {
+  const handleFormSubmit = async (formData: BetFormValues) => {
     setSubmitError(null)
     try {
-      await onSubmit(data)
-    } catch (err: any) {
+      await onSubmit({ price: formData.price, has_nds: formData.has_nds } as PlaceBetRequest)
+    } catch (err) {
       if (err instanceof ApiError && err.status === 422 && err.details) {
         const details = err.details as Record<string, unknown>
         for (const [field, msg] of Object.entries(details)) {
-          if (field in data) {
+          if (field in formData) {
             setError(field as keyof BetFormValues, { message: String(msg) })
           }
         }
       }
-      setSubmitError(err?.message ?? 'Не удалось разместить ставку')
+      setSubmitError((err as Error)?.message ?? 'Не удалось разместить ставку')
     }
   }
 
   return (
-    <Dialog isOpen={isOpen ?? true} onOpenChange={(open) => { if (!open) handleClose() }} purpose="form" title={auction.trading.my_bet ? 'Изменить ставку' : 'Сделать ставку'}>
+    <Dialog isOpen={isOpen ?? true} onOpenChange={(open) => { if (!open) handleClose() }} purpose="form">
       <form noValidate onSubmit={handleSubmit(handleFormSubmit)}>
         <div
           className="space-y-4 p-4 bet-form-content"
@@ -91,8 +90,8 @@ export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: 
               max={auction.trading.max_price}
               step={auction.trading.step}
               onChange={(val) => setValue('price', Number(val))}
-              status={errors.price ? { type: 'error', message: errors.price.message } : undefined}
-              disabled={isPending}
+              status={errors.price ? { type: 'error' as const, message: String(errors.price.message ?? '') } : undefined}
+              isDisabled={isPending}
             />
 
             <CheckboxInput
@@ -108,7 +107,7 @@ export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: 
           </FormLayout>
 
           <div className="flex justify-end gap-2">
-            <Button label="Отмена" variant="secondary" onClick={handleClose} disabled={isPending} />
+            <Button label="Отмена" variant="secondary" onClick={handleClose} isDisabled={isPending} />
             <Button label={isPending ? 'Отправка...' : 'Подтвердить'} variant="primary" type="submit" isLoading={isPending} />
           </div>
         </div>

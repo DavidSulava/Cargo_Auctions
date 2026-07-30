@@ -36,69 +36,67 @@ const AUCTION_TYPE_COLORS: Record<string, 'purple' | 'teal' | 'pink' | 'neutral'
 export function AuctionListTable({ items, search }: Props) {
   const navigate = useNavigate()
 
-  const clickableRowPlugin: TablePlugin<AuctionListItem> = {
-    transformBodyRow: (props: BodyRowRenderProps, item: AuctionListItem) => ({
+  const clickableRowPlugin: TablePlugin<Record<string, unknown>> = {
+    transformBodyRow: (props: BodyRowRenderProps, item: Record<string, unknown>) => ({
       ...props,
       htmlProps: {
         ...props.htmlProps,
-        onClick: () => navigate({ to: `/auctions/${item.uuid}`, search }),
+        onClick: () => navigate({ to: `/auctions/${item.uuid as string}`, search }),
         className: 'auction-row',
         style: { ...props.htmlProps.style, cursor: 'pointer' },
       },
     }),
   }
 
-  const columns: TableColumn<AuctionListItem>[] = [
+  const columns: TableColumn<Record<string, unknown>>[] = [
     {
       key: 'cargo_num',
       header: '№',
       width: pixel(120),
-      renderCell: (item) => <Link to={`/auctions/${item.uuid}`} search={search}>{item.cargo_num}</Link>,
+      renderCell: (item: Record<string, unknown>) => <Link to="/auctions/$uuid" params={{ uuid: item.uuid as string }} search={search}>{(item).cargo_num as string}</Link>,
     },
     {
       key: 'auc_type',
       header: 'Тип',
-      width: pixel(80),
+      width: pixel(100),
       renderCell: (item) => (
-        <Badge variant={AUCTION_TYPE_COLORS[item.auc_type] ?? 'neutral'}>
-          {item.auc_type}
-        </Badge>
+        <Badge variant={AUCTION_TYPE_COLORS[item.auc_type as string] ?? 'neutral'} label={item.auc_type as string} />
       ),
     },
     {
       key: 'status',
       header: 'Статус',
-      width: pixel(80),
-      renderCell: (item) => {
-        const badge = STATUS_BADGE[item.status] ?? { variant: 'neutral' as const, label: item.status }
-        return <Badge variant={badge.variant}>{badge.label}</Badge>
+      width: pixel(100),
+      renderCell: (item: Record<string, unknown>) => {
+        const badge = STATUS_BADGE[item.status as string] ?? { variant: 'neutral' as const, label: item.status as string }
+        return <Badge variant={badge.variant} label={badge.label} />
       },
     },
     {
       key: 'trading_status',
       header: 'Торговый статус',
       width: pixel(140),
-      renderCell: (item) => {
-        const badge = TRADING_STATUS[item.trading_status] ?? { variant: 'neutral' as const, label: item.trading_status }
-        return <Badge variant={badge.variant}>{badge.label}</Badge>
+      renderCell: (item: Record<string, unknown>) => {
+        const badge = TRADING_STATUS[item.trading_status as string] ?? { variant: 'neutral' as const, label: item.trading_status as string }
+        return <Badge variant={badge.variant} label={badge.label} />
       },
     },
     {
       key: 'route',
       header: 'Маршрут',
       width: proportional(1),
-      renderCell: (item) => (
-        <div>{item.load_city} → {item.unload_city}</div>
+      renderCell: (item: Record<string, unknown>) => (
+        <div>{(item).load_city as string} → {(item).unload_city as string}</div>
       ),
     },
     {
       key: 'cargo',
       header: 'Груз',
       width: proportional(1),
-      renderCell: (item) => (
+      renderCell: (item: Record<string, unknown>) => (
         <>
-          <div>{item.cargo_name}</div>
-          <div className="text-secondary">{item.cargo_weight_kg} кг / {item.cargo_volume_m3} м³</div>
+          <div>{(item).cargo_name as string}</div>
+          <div className="text-secondary">{(item).cargo_weight_kg as number} кг / {(item).cargo_volume_m3 as number} м³</div>
         </>
       ),
     },
@@ -106,10 +104,10 @@ export function AuctionListTable({ items, search }: Props) {
       key: 'price',
       header: 'Цена',
       width: proportional(1),
-      renderCell: (item) => (
+      renderCell: (item: Record<string, unknown>) => (
         <>
-          <div>{item.current_price.toLocaleString('ru-RU')} ₽</div>
-          <div className="text-secondary">{item.price_per_km} ₽/км</div>
+          <div>{(item.current_price as number).toLocaleString('ru-RU')} ₽</div>
+          <div className="text-secondary">{(item).price_per_km as number} ₽/км</div>
         </>
       ),
     },
@@ -117,13 +115,13 @@ export function AuctionListTable({ items, search }: Props) {
 
   return (
     <Table
-      data={items}
+      data={items as unknown as Record<string, unknown>[]}
       columns={columns}
       idKey="uuid"
       density="balanced"
       dividers="rows"
       hasHover
-      plugins={[clickableRowPlugin]}
+      plugins={{ clickableRow: clickableRowPlugin }}
     />
   )
 }

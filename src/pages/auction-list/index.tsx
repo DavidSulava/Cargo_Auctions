@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Button } from '@astryxdesign/core/Button'
 import { useAuctionList } from '~/entities/auction/queries'
 import { AuctionFiltersPanel } from '~/widgets/auction-card/filters'
 import { AuctionListTable } from '~/widgets/auction-card/table'
@@ -14,7 +15,7 @@ export default function AuctionListPage() {
   const navigate = useNavigate()
   const [resetKey, setResetKey] = useState(0)
 
-  const { data, isLoading, isError, error } = useAuctionList(filters)
+  const { data, isLoading, isError, error } = useAuctionList(filters as never)
   const totalPages = data ? Math.ceil(data.total / data.per_page) : 0
 
   const setFilter = useCallback(
@@ -25,21 +26,21 @@ export default function AuctionListPage() {
       } else {
         (next as Record<string, unknown>)[key] = value
       }
-      navigate({ search: next })
+      navigate({ search: next as never })
     },
     [filters, navigate],
   )
 
   const setPage = useCallback(
     (page: number) => {
-      navigate({ search: { ...filters, page } })
+      navigate({ to: '/', search: { page } as never })
     },
     [filters, navigate],
   )
 
   const clearFilters = useCallback(() => {
     setResetKey((k) => k + 1)
-    navigate({ search: {} })
+    navigate({ to: '/' })
   }, [navigate])
 
   if (isError) {
@@ -68,12 +69,12 @@ export default function AuctionListPage() {
             <Skeleton width="100%" height="40px" />
           </div>
         ) : data && data.items.length === 0 ? (
-          <div className="content-enter">
+          <div className="content-enter space-y-4">
             <EmptyState
               title="Аукционы не найдены"
               description="Попробуйте изменить параметры фильтров"
-              action={{ label: 'Сбросить фильтры', onClick: clearFilters }}
             />
+            <Button label="Сбросить фильтры" variant="secondary" onClick={clearFilters} />
           </div>
         ) : data ? (
           <div className="content-enter" key={filters.page ?? 1}>

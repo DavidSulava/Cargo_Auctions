@@ -7,7 +7,7 @@ export const cityHandlers = [
     const query = url.searchParams.get('q')?.toLowerCase() ?? ''
 
     const filtered = query
-      ? CITIES.filter((c) => c.toLowerCase().includes(query))
+      ? CITIES.filter((c: string) => c.toLowerCase().includes(query))
       : CITIES
 
     return HttpResponse.json(filtered.slice(0, 10))

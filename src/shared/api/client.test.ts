@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { apiRequest, ApiError } from './client'
 
 describe('apiRequest', () => {
@@ -7,7 +7,7 @@ describe('apiRequest', () => {
   })
 
   it('sends GET request with correct headers', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ items: [] }),
     })
@@ -24,7 +24,7 @@ describe('apiRequest', () => {
   })
 
   it('sends POST with body', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
     })
@@ -42,7 +42,7 @@ describe('apiRequest', () => {
   })
 
   it('throws ApiError on non-ok response', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    globalThis.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 422,
       statusText: 'Validation Error',
@@ -54,7 +54,7 @@ describe('apiRequest', () => {
   })
 
   it('passes params as URL search params', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({}),
     })

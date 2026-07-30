@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { useBetList } from '~/entities/bet/queries'
+import type { Bet } from '~/entities/bet/types'
 import { Skeleton } from '@astryxdesign/core/Skeleton'
 import { Badge } from '@astryxdesign/core/Badge'
 import { Banner } from '@astryxdesign/core/Banner'
@@ -73,7 +74,7 @@ export default function AuctionBetsPage() {
             </tr>
           </thead>
           <tbody>
-            {data.items.map((bet) => (
+            {data.items.map((bet: Bet) => (
               <tr key={bet.id} className="border-b border-border hover:bg-surface">
                 <td className="p-3 text-sm">{bet.rank}</td>
                 <td className="p-3">
@@ -91,14 +92,12 @@ export default function AuctionBetsPage() {
                 </td>
                 <td className="p-3">
                   <div className="flex gap-1 flex-wrap">
-                    {bet.is_winner && <Badge variant="success">Победитель</Badge>}
+                    {bet.is_winner && <Badge variant="success" label="Победитель" />}
                     {bet.is_cancelled && (
-                      <Badge variant="error" title={bet.cancel_reason}>
-                        Отменена
-                      </Badge>
+                      <Badge variant="error" label="Отменена" />
                     )}
                     {!bet.is_winner && !bet.is_cancelled && (
-                      <Badge variant="neutral">Активна</Badge>
+                      <Badge variant="neutral" label="Активна" />
                     )}
                   </div>
                 </td>

@@ -4,14 +4,14 @@ export const aucTypeEnum = z.enum(['Request', 'Up', 'Down', 'FixPrice'])
 export const auctionStatusEnum = z.enum(['Active', 'Closed', 'Cancelled', 'Pending', 'Finished'])
 
 const str = () => z.string().default('').catch('')
-const boolFromStr = () => z.union([z.boolean(), z.enum(['true', 'false']).transform((s) => s === 'true')]).catch(undefined)
-const numFromStr = () => z.coerce.number().catch(undefined)
+const boolFromStr = () => z.union([z.boolean(), z.enum(['true', 'false']).transform((s) => s === 'true')]).optional().catch(undefined)
+const numFromStr = () => z.coerce.number().optional().catch(undefined)
 
 export const filterSchema = z.object({
   cargo_num: str(),
-  status: auctionStatusEnum.catch(undefined),
+  status: auctionStatusEnum.optional().catch(undefined),
   statuses: str().transform((s) => s ? s.split(',') : []),
-  auc_type: aucTypeEnum.catch(undefined),
+  auc_type: aucTypeEnum.optional().catch(undefined),
   load_city: str(),
   unload_city: str(),
   load_date_from: str(),
