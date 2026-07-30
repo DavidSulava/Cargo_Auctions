@@ -114,9 +114,9 @@ export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: 
 
             <CheckboxInput
               label="С НДС"
-              checked={watch('has_nds') ?? true}
+              value={watch('has_nds') ?? true}
               onChange={(checked) => setValue('has_nds', checked)}
-              disabled={isPending}
+              isDisabled={isPending}
             />
 
             {submitError && (

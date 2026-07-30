@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { TextInput } from '@astryxdesign/core/TextInput'
 import { NumberInput } from '@astryxdesign/core/NumberInput'
 import { Selector } from '@astryxdesign/core/Selector'
@@ -13,6 +14,7 @@ interface Props {
   filters: FilterParams
   onFilterChange: (key: string, value: unknown) => void
   onClear: () => void
+  resetKey: number
 }
 
 const STATUS_OPTIONS = [
@@ -42,7 +44,18 @@ function boundValue(value: unknown): string {
   return String(value)
 }
 
-export function AuctionFiltersPanel({ filters, onFilterChange, onClear }: Props) {
+export function AuctionFiltersPanel({ filters, onFilterChange, onClear, resetKey }: Props) {
+  const [localAvailable, setLocalAvailable] = useState<boolean | undefined>(undefined)
+  const [localBidder, setLocalBidder] = useState<boolean | undefined>(undefined)
+
+  useEffect(() => {
+    setLocalAvailable(undefined)
+    setLocalBidder(undefined)
+  }, [resetKey])
+
+  const isAvailable = localAvailable ?? (filters.is_available === true)
+  const isBidder = localBidder ?? (filters.is_bidder === true)
+
   return (
     <Section>
       <FormLayout>
@@ -116,13 +129,19 @@ export function AuctionFiltersPanel({ filters, onFilterChange, onClear }: Props)
           <div className="flex items-end gap-4">
             <CheckboxInput
               label="Доступен"
-              checked={filters.is_available === true}
-              onChange={(checked) => onFilterChange('is_available', checked ? 'true' : undefined)}
+              value={isAvailable}
+              onChange={(checked) => {
+                setLocalAvailable(checked)
+                onFilterChange('is_available', checked ? 'true' : undefined)
+              }}
             />
             <CheckboxInput
               label="Я участник"
-              checked={filters.is_bidder === true}
-              onChange={(checked) => onFilterChange('is_bidder', checked ? 'true' : undefined)}
+              value={isBidder}
+              onChange={(checked) => {
+                setLocalBidder(checked)
+                onFilterChange('is_bidder', checked ? 'true' : undefined)
+              }}
             />
           </div>
 

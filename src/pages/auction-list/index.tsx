@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useAuctionList } from '~/entities/auction/queries'
 import type { FilterParams } from '~/shared/lib/filter-schema'
@@ -30,6 +30,7 @@ function isDefaultFilters(f: FilterParams): boolean {
 export default function AuctionListPage() {
   const filters = useSearch({ from: '/' })
   const navigate = useNavigate()
+  const [resetKey, setResetKey] = useState(0)
 
   useEffect(() => {
     if (isDefaultFilters(filters)) {
@@ -48,7 +49,13 @@ export default function AuctionListPage() {
       const saved = loadSavedFilters()
       saved[key] = String(value ?? '')
       localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(saved))
-      navigate({ search: { ...filters, [key]: value, page: 1 } })
+      const next = { ...filters, page: 1 }
+      if (value === undefined || value === '') {
+        delete (next as Record<string, unknown>)[key]
+      } else {
+        (next as Record<string, unknown>)[key] = value
+      }
+      navigate({ search: next })
     },
     [filters, navigate],
   )
@@ -62,6 +69,7 @@ export default function AuctionListPage() {
 
   const clearFilters = useCallback(() => {
     localStorage.removeItem(FILTER_STORAGE_KEY)
+    setResetKey((k) => k + 1)
     navigate({ search: {} })
   }, [navigate])
 
@@ -79,7 +87,7 @@ export default function AuctionListPage() {
     <div className="p-4 space-y-4">
       <h1 className="text-2xl font-bold text-primary">Аукционы</h1>
 
-      <AuctionFiltersPanel filters={filters} onFilterChange={setFilter} onClear={clearFilters} />
+      <AuctionFiltersPanel filters={filters} onFilterChange={setFilter} onClear={clearFilters} resetKey={resetKey} />
 
       <Section>
         {isLoading ? (
@@ -101,6 +109,7 @@ export default function AuctionListPage() {
             <AuctionListTable items={data.items} />
             {totalPages > 1 && (
               <Pagination
+                className="pt-4"
                 variant="pages"
                 totalItems={data.total}
                 page={filters.page ?? 1}

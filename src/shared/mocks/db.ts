@@ -71,7 +71,7 @@ function generateMockAuction(index: number): AuctionListItem & { organizer_phone
     current_price: basePrice,
     price_per_km: randomInt(20, 150),
     bet_step: step,
-    has_my_bet: Math.random() > 0.6,
+    has_my_bet: false,
     can_set_bet: status === 'Active',
     is_available: status === 'Active',
     is_bidder: Math.random() > 0.4,
@@ -278,25 +278,38 @@ export const db = {
     auction.has_my_bet = true
     auction.trading_status = 'Leading'
 
-    const bet: Bet = {
-      id: `bet-${auctionUuid}-${Date.now()}`,
-      auction_uuid: auctionUuid,
-      carrier_name: 'Вы',
-      price: data.price,
-      price_with_nds: Math.round(data.price * (data.has_nds ? 1.2 : 1)),
-      price_without_nds: Math.round(data.price / (data.has_nds ? 1.2 : 1)),
-      has_nds: data.has_nds ?? true,
-      is_winner: true,
-      is_cancelled: false,
-      rank: 1,
-      created_at: new Date().toISOString(),
+    const existing = this.bets.get(auctionUuid) ?? []
+    const existingBetIndex = existing.findIndex((b) => b.carrier_name === 'Вы')
+
+    if (existingBetIndex !== -1) {
+      const old = existing[existingBetIndex]
+      existing[existingBetIndex] = {
+        ...old,
+        price: data.price,
+        price_with_nds: Math.round(data.price * (data.has_nds ? 1.2 : 1)),
+        price_without_nds: Math.round(data.price / (data.has_nds ? 1.2 : 1)),
+        has_nds: data.has_nds ?? true,
+        created_at: new Date().toISOString(),
+      }
+      this.bets.set(auctionUuid, existing)
+    } else {
+      const bet: Bet = {
+        id: `bet-${auctionUuid}-${Date.now()}`,
+        auction_uuid: auctionUuid,
+        carrier_name: 'Вы',
+        price: data.price,
+        price_with_nds: Math.round(data.price * (data.has_nds ? 1.2 : 1)),
+        price_without_nds: Math.round(data.price / (data.has_nds ? 1.2 : 1)),
+        has_nds: data.has_nds ?? true,
+        is_winner: true,
+        is_cancelled: false,
+        rank: 1,
+        created_at: new Date().toISOString(),
+      }
+      this.bets.set(auctionUuid, [bet, ...existing])
     }
 
-    const existing = this.bets.get(auctionUuid) ?? []
-    this.bets.set(auctionUuid, [bet, ...existing])
-
     return {
-      id: bet.id,
       price: data.price,
       has_nds: data.has_nds ?? true,
       is_winner: true,
