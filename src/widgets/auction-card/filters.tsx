@@ -64,7 +64,7 @@ export function AuctionFiltersPanel({ filters, onFilterChange, onClear, resetKey
             label="Номер заявки"
             placeholder="CARGO-00123"
             value={boundValue(filters.cargo_num)}
-            onChange={(e) => onFilterChange('cargo_num', e.target.value)}
+            onChange={(val) => onFilterChange('cargo_num', val)}
             hasClear
           />
 

@@ -4,7 +4,7 @@ export const aucTypeEnum = z.enum(['Request', 'Up', 'Down', 'FixPrice'])
 export const auctionStatusEnum = z.enum(['Active', 'Closed', 'Cancelled', 'Pending', 'Finished'])
 
 const str = () => z.string().default('').catch('')
-const boolFromStr = () => z.enum(['true', 'false']).transform((s) => s === 'true').catch(undefined)
+const boolFromStr = () => z.union([z.boolean(), z.enum(['true', 'false']).transform((s) => s === 'true')]).catch(undefined)
 const numFromStr = () => z.coerce.number().catch(undefined)
 
 export const filterSchema = z.object({
