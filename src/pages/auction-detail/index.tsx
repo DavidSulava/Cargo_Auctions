@@ -31,6 +31,7 @@ const AUCTION_TYPE_BADGE: Record<string, { variant: 'purple' | 'teal' | 'pink' |
 export default function AuctionDetailPage() {
   const { uuid } = useParams({ from: '/auctions/$uuid' })
   const navigate = useNavigate()
+  const backSearch = Object.fromEntries(new URLSearchParams(window.location.search)) as Record<string, unknown>
   const { data, isLoading, isError } = useAuctionDetail(uuid)
   const [tab, setTab] = useState('detail')
   const betsQuery = useBetList(tab === 'bets' ? uuid : '')
@@ -54,7 +55,7 @@ export default function AuctionDetailPage() {
             Запрошенный аукцион не существует или был удалён.
           </Banner>
         </div>
-        <Button label="Вернуться к списку" variant="secondary" className="mt-4" onClick={() => navigate({ to: '/' })} />
+        <Button label="Вернуться к списку" variant="secondary" className="mt-4" onClick={() => navigate({ to: '/', search: listSearch })} />
       </div>
     )
   }

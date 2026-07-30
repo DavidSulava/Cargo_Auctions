@@ -3,9 +3,11 @@ import { Badge } from '@astryxdesign/core/Badge'
 import { Table, proportional, pixel } from '@astryxdesign/core/Table'
 import type { TablePlugin, BodyRowRenderProps, TableColumn } from '@astryxdesign/core/Table'
 import type { AuctionListItem } from '~/entities/auction/types'
+import type { FilterParams } from '~/shared/lib/filter-schema'
 
 interface Props {
   items: AuctionListItem[]
+  search: FilterParams
 }
 
 const STATUS_BADGE: Record<string, { variant: 'success' | 'warning' | 'error' | 'info' | 'neutral'; label: string }> = {
@@ -31,7 +33,7 @@ const AUCTION_TYPE_COLORS: Record<string, 'purple' | 'teal' | 'pink' | 'neutral'
   FixPrice: 'neutral',
 }
 
-export function AuctionListTable({ items }: Props) {
+export function AuctionListTable({ items, search }: Props) {
   const navigate = useNavigate()
 
   const clickableRowPlugin: TablePlugin<AuctionListItem> = {
@@ -39,7 +41,7 @@ export function AuctionListTable({ items }: Props) {
       ...props,
       htmlProps: {
         ...props.htmlProps,
-        onClick: () => navigate({ to: `/auctions/${item.uuid}` }),
+        onClick: () => navigate({ to: `/auctions/${item.uuid}`, search }),
         className: 'auction-row',
         style: { ...props.htmlProps.style, cursor: 'pointer' },
       },
@@ -51,7 +53,7 @@ export function AuctionListTable({ items }: Props) {
       key: 'cargo_num',
       header: '№',
       width: pixel(120),
-      renderCell: (item) => <Link to={`/auctions/${item.uuid}`}>{item.cargo_num}</Link>,
+      renderCell: (item) => <Link to={`/auctions/${item.uuid}`} search={search}>{item.cargo_num}</Link>,
     },
     {
       key: 'auc_type',

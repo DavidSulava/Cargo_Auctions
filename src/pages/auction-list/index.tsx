@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useAuctionList } from '~/entities/auction/queries'
-import type { FilterParams } from '~/shared/lib/filter-schema'
 import { AuctionFiltersPanel } from '~/widgets/auction-card/filters'
 import { AuctionListTable } from '~/widgets/auction-card/table'
 import { Pagination } from '@astryxdesign/core/Pagination'
@@ -10,45 +9,16 @@ import { Banner } from '@astryxdesign/core/Banner'
 import { Skeleton } from '@astryxdesign/core/Skeleton'
 import { Section } from '@astryxdesign/core/Section'
 
-const FILTER_STORAGE_KEY = 'auction-filters'
-
-function loadSavedFilters(): Partial<Record<string, string>> {
-  try {
-    return JSON.parse(localStorage.getItem(FILTER_STORAGE_KEY) ?? '{}')
-  } catch {
-    return {}
-  }
-}
-
-function isDefaultFilters(f: FilterParams): boolean {
-  return !f.cargo_num && !f.status && f.statuses.length === 0 && !f.auc_type
-    && !f.load_city && !f.unload_city && !f.load_date_from && !f.load_date_to
-    && f.is_available === undefined && f.is_bidder === undefined
-    && f.price_from === undefined && f.price_to === undefined
-}
-
 export default function AuctionListPage() {
   const filters = useSearch({ from: '/' })
   const navigate = useNavigate()
   const [resetKey, setResetKey] = useState(0)
-
-  useEffect(() => {
-    if (isDefaultFilters(filters)) {
-      const saved = loadSavedFilters()
-      if (Object.keys(saved).length > 0) {
-        navigate({ search: saved, replace: true })
-      }
-    }
-  }, [])
 
   const { data, isLoading, isError, error } = useAuctionList(filters)
   const totalPages = data ? Math.ceil(data.total / data.per_page) : 0
 
   const setFilter = useCallback(
     (key: string, value: unknown) => {
-      const saved = loadSavedFilters()
-      saved[key] = String(value ?? '')
-      localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(saved))
       const next = { ...filters, page: 1 }
       if (value === undefined || value === '') {
         delete (next as Record<string, unknown>)[key]
@@ -68,7 +38,6 @@ export default function AuctionListPage() {
   )
 
   const clearFilters = useCallback(() => {
-    localStorage.removeItem(FILTER_STORAGE_KEY)
     setResetKey((k) => k + 1)
     navigate({ search: {} })
   }, [navigate])
@@ -108,7 +77,7 @@ export default function AuctionListPage() {
           </div>
         ) : data ? (
           <div className="content-enter" key={filters.page ?? 1}>
-            <AuctionListTable items={data.items} />
+            <AuctionListTable items={data.items} search={filters} />
             {totalPages > 1 && (
               <Pagination
                 className="pt-4"

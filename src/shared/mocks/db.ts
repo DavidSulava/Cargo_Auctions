@@ -72,7 +72,7 @@ function generateMockAuction(index: number): AuctionListItem & DetailEnrichmentF
     has_my_bet: false,
     can_set_bet: status === 'Active',
     is_available: status === 'Active',
-    is_bidder: Math.random() > 0.4,
+    is_bidder: false,
     hide_bets_history: Math.random() > 0.85,
     hide_points_address_and_contacts: Math.random() > 0.8,
     no_view_cargo_price: Math.random() > 0.9,
@@ -204,7 +204,19 @@ export function createMockRepository(): AuctionRepository {
 
   return {
     listAuctions(filters) {
-      const filtered = filterAuctions(auctions, filters)
+      const enriched = auctions.map((item) => {
+        const myBets = bets.get(item.uuid) ?? []
+        const myBet = myBets.find((b) => b.carrier_name === 'Вы')
+        const is_bidder = !!myBet
+        let trading_status: TradingStatus
+        if (myBet) {
+          trading_status = myBet.is_winner ? 'Leading' : 'Losing'
+        } else {
+          trading_status = 'None'
+        }
+        return { ...item, is_bidder, trading_status }
+      })
+      const filtered = filterAuctions(enriched, filters)
       const page = filters.page ?? 1
       const perPage = filters.per_page ?? 10
       const total = filtered.length
@@ -287,6 +299,7 @@ export function createMockRepository(): AuctionRepository {
 
       auction.current_price = data.price
       auction.has_my_bet = true
+      auction.is_bidder = true
       auction.trading_status = 'Leading'
 
       const existing = bets.get(auctionUuid) ?? []

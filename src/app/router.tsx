@@ -1,4 +1,4 @@
-import { createRootRouteWithContext, createRoute, createRouter, Outlet, useRouter } from '@tanstack/react-router'
+import { createRootRouteWithContext, createRoute, createRouter, Outlet, Link } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
 import { Suspense, lazy } from 'react'
 import { AppShell } from '@astryxdesign/core/AppShell'
@@ -27,7 +27,6 @@ function PageLoader() {
 
 const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: () => {
-    const router = useRouter()
     return (
       <AppShell
         topNav={
@@ -38,13 +37,13 @@ const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({
         sideNav={
           <SideNav>
             <SideNavSection title="Меню">
-              <SideNavItem label="Аукционы" href={import.meta.env.BASE_URL} />
+              <SideNavItem as={Link} label="Аукционы" href="/" />
             </SideNavSection>
           </SideNav>
         }
       >
         <Suspense fallback={<PageLoader />}>
-          <div key={router.state.location.pathname} className="page-enter">
+          <div className="page-enter">
             <Outlet />
           </div>
         </Suspense>
