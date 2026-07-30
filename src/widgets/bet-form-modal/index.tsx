@@ -7,7 +7,7 @@ import { CheckboxInput } from '@astryxdesign/core/CheckboxInput'
 import { Button } from '@astryxdesign/core/Button'
 import { FormLayout } from '@astryxdesign/core/FormLayout'
 import { Banner } from '@astryxdesign/core/Banner'
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import type { AuctionDetail } from '~/entities/auction/types'
 import type { PlaceBetRequest } from '~/entities/bet/types'
 import { ApiError } from '~/shared/api/client'
@@ -68,13 +68,11 @@ export function BetFormModal({ auction, isOpen, isPending, onSubmit, onClose }: 
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [closing, setClosing] = useState(false)
 
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     if (closing) return
     setClosing(true)
-    setTimeout(() => {
-      onClose()
-    }, 120)
-  }, [closing, onClose])
+    setTimeout(onClose, 120)
+  }
 
   const handleFormSubmit = async (data: BetFormValues) => {
     setSubmitError(null)
