@@ -32,13 +32,6 @@ npm run lint       # oxlint
 docker compose up    # nginx со статикой на :8080
 ```
 
-## GitHub Pages
-
-Настроен деплой на `https://<user>.github.io/Cargo_Auctions/`.
-
-- Vite base path: `/Cargo_Auctions/`
-- `public/404.html` — SPA fallback (редирект на index.html с правильным base path)
-
 ## Переменные окружения
 
 | Переменная | По умолчанию | Описание |
@@ -55,13 +48,3 @@ src/
 ├── shared/       # API-клиент, MSW, утилиты
 └── widgets/      # переиспользуемые UI-блоки (фильтры, таблица, форма ставки)
 ```
-
-## НДС в ставках
-
-Цена ставки вводится и сравнивается **без НДС** (база сравнения, как в закупках по 44-ФЗ/223-ФЗ):
-
-- `has_nds=true` — перевозчик платит НДС: к оплате `цена без НДС × 1,2` (`price_with_nds`), в списке ставок показываются обе суммы.
-- `has_nds=false` — НДС не выделяется: `price_with_nds` и `price_without_nds` равны введённой цене.
-- Ставка НДС 20% вынесена в константу `src/shared/lib/vat.ts` (`VAT_RATE`) — при изменении ставки достаточно править её в одном месте.
-- `min/max/step`, `current_price`, `available_price` и `price` ставки — всегда в шкале «без НДС».
-
