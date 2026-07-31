@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { filterSchema } from './filter-schema'
+import { filterSchema } from '../filter-schema'
 
 describe('filterSchema', () => {
   it('parses empty search params with defaults', () => {

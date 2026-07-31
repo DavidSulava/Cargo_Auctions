@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { priceWithVat, priceWithoutVat, VAT_RATE } from './vat'
+import { priceWithVat, priceWithoutVat, VAT_RATE } from '../vat'
 
 describe('vat helpers', () => {
   it('exposes the VAT rate', () => {

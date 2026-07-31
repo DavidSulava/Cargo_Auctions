@@ -33,13 +33,13 @@ function makeItem(overrides: Partial<AuctionListItem> = {}): AuctionListItem {
 
 describe('filterAuctions', () => {
   it('returns all items when no filters applied', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [makeItem(), makeItem({ uuid: 'auction-0002' })]
     expect(filterAuctions(items, {})).toHaveLength(2)
   })
 
   it('filters by cargo_num substring', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ cargo_num: 'CARGO-00123' }),
       makeItem({ cargo_num: 'CARGO-00456' }),
@@ -50,7 +50,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by status', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ status: 'Active' }),
       makeItem({ status: 'Closed' }),
@@ -61,7 +61,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by multiple statuses', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ status: 'Active' }),
       makeItem({ status: 'Closed' }),
@@ -72,7 +72,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by auc_type', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ auc_type: 'Request' }),
       makeItem({ auc_type: 'Up' }),
@@ -82,7 +82,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by load_city substring', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ load_city: 'Москва' }),
       makeItem({ load_city: 'Казань' }),
@@ -92,7 +92,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by unload_city substring', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ unload_city: 'Санкт-Петербург' }),
       makeItem({ unload_city: 'Казань' }),
@@ -102,7 +102,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by load_date_from', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ load_date_from: '2026-08-01' }),
       makeItem({ load_date_from: '2026-07-15' }),
@@ -112,7 +112,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by load_date_to', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ load_date_to: '2026-08-01' }),
       makeItem({ load_date_to: '2026-08-10' }),
@@ -122,7 +122,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by is_available', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ is_available: true }),
       makeItem({ is_available: false }),
@@ -132,7 +132,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by is_bidder', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ is_bidder: true }),
       makeItem({ is_bidder: false }),
@@ -142,7 +142,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by price_from', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ current_price: 10000 }),
       makeItem({ current_price: 50000 }),
@@ -153,7 +153,7 @@ describe('filterAuctions', () => {
   })
 
   it('filters by price_to', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ current_price: 10000 }),
       makeItem({ current_price: 50000 }),
@@ -164,7 +164,7 @@ describe('filterAuctions', () => {
   })
 
   it('combines multiple filters', async () => {
-    const { filterAuctions } = await import('./db')
+    const { filterAuctions } = await import('../db')
     const items = [
       makeItem({ status: 'Active', auc_type: 'Request', load_city: 'Москва' }),
       makeItem({ status: 'Active', auc_type: 'Up', load_city: 'Москва' }),
@@ -177,7 +177,7 @@ describe('filterAuctions', () => {
 
 describe('AuctionRepository', () => {
   it('listAuctions returns paginated results', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const result = repo.listAuctions({ page: 1, per_page: 5 })
     expect(result.items).toHaveLength(5)
@@ -186,7 +186,7 @@ describe('AuctionRepository', () => {
   })
 
   it('listAuctions defaults to page 1 with 10 per page', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const result = repo.listAuctions({})
     expect(result.items).toHaveLength(10)
@@ -194,7 +194,7 @@ describe('AuctionRepository', () => {
   })
 
   it('listAuctions returns remaining items on last page', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const page1 = repo.listAuctions({ page: 1, per_page: 10 })
     const page2 = repo.listAuctions({ page: 2, per_page: 10 })
@@ -206,7 +206,7 @@ describe('AuctionRepository', () => {
   })
 
   it('getAuctionDetail returns detail for valid uuid', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const list = repo.listAuctions({ page: 1, per_page: 1 })
     const uuid = list.items[0].uuid
@@ -219,13 +219,13 @@ describe('AuctionRepository', () => {
   })
 
   it('getAuctionDetail returns undefined for unknown uuid', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     expect(repo.getAuctionDetail('nonexistent')).toBeUndefined()
   })
 
   it('getBets returns bets for an auction', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const all = repo.listAuctions({ page: 1, per_page: 47 })
     const auctionWithBets = all.items.find((a) => repo.getBets(a.uuid).total > 0)
@@ -237,7 +237,7 @@ describe('AuctionRepository', () => {
   })
 
   it('getBets returns empty for auction with no bets', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const result = repo.getBets('nonexistent')
     expect(result.items).toHaveLength(0)
@@ -245,7 +245,7 @@ describe('AuctionRepository', () => {
   })
 
   it('placeBet succeeds with valid data', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const all = repo.listAuctions({ page: 1, per_page: 47 })
     const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
@@ -258,7 +258,7 @@ describe('AuctionRepository', () => {
   })
 
   it('placeBet with has_nds=true stores gross as +VAT and base as net', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const all = repo.listAuctions({ page: 1, per_page: 47 })
     const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
@@ -272,7 +272,7 @@ describe('AuctionRepository', () => {
   })
 
   it('placeBet with has_nds=false keeps gross and net equal to the base', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const all = repo.listAuctions({ page: 1, per_page: 47 })
     const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
@@ -286,13 +286,13 @@ describe('AuctionRepository', () => {
   })
 
   it('placeBet throws 404 for unknown auction', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     expect(() => repo.placeBet('nonexistent', { price: 10000 })).toThrow('Аукцион не найден')
   })
 
   it('placeBet throws 422 for zero price', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const all = repo.listAuctions({ page: 1, per_page: 47 })
     const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
@@ -301,7 +301,7 @@ describe('AuctionRepository', () => {
   })
 
   it('placeBet rejects a price not above the current one on Up auctions', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const all = repo.listAuctions({ page: 1, per_page: 47 })
     const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
@@ -310,7 +310,7 @@ describe('AuctionRepository', () => {
   })
 
   it('placeBet rejects a price not below the current one on Down/Request auctions', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const all = repo.listAuctions({ page: 1, per_page: 47 })
     const down = all.items.find((a) => a.auc_type === 'Down' && a.status === 'Active')
@@ -319,7 +319,7 @@ describe('AuctionRepository', () => {
   })
 
   it('placeBet is rejected on FixPrice auctions', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const all = repo.listAuctions({ page: 1, per_page: 47 })
     const fixPrice = all.items.find((a) => a.auc_type === 'FixPrice')
@@ -328,7 +328,7 @@ describe('AuctionRepository', () => {
   })
 
   it('placeBet never marks a winner while trading is active', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo = createMockRepository()
     const all = repo.listAuctions({ page: 1, per_page: 47 })
     const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
@@ -339,7 +339,7 @@ describe('AuctionRepository', () => {
   })
 
   it('all mock auctions satisfy status invariants', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const { deriveTradingStatus } = await import('~/entities/auction/status-rules')
     const repo = createMockRepository()
     const all = repo.listAuctions({ page: 1, per_page: 47 })
@@ -376,7 +376,7 @@ describe('AuctionRepository', () => {
   })
 
   it('createMockRepository produces isolated state — mutations dont leak', async () => {
-    const { createMockRepository } = await import('./db')
+    const { createMockRepository } = await import('../db')
     const repo1 = createMockRepository()
     const repo2 = createMockRepository()
 

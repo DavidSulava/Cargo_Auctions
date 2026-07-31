@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import { usePlaceBet } from './queries'
-import { placeBet } from './api'
+import { usePlaceBet } from '../queries'
+import { placeBet } from '../api'
 
-vi.mock('./api', () => ({
+vi.mock('../api', () => ({
   fetchBets: vi.fn(),
   placeBet: vi.fn(),
 }))
