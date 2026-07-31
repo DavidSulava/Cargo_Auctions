@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Providers } from '~/app/providers'
+import { Providers } from '~/app'
 import './app/styles/global.css'
 
 async function start() {

@@ -1,14 +1,13 @@
 import { createRootRouteWithContext, createRoute, createRouter } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
-import { queryClient } from './query-client'
+import { queryClient } from '../providers/query-client'
 import {
   AuctionListPage,
   AuctionDetailPage,
   AuctionBetsPage,
   BetFormPage,
-  RootLayout,
-  NotFound,
-} from './router-components'
+} from './pages'
+import { RootLayout, NotFound } from '../layouts'
 import { filterSchema } from '~/shared/lib/filter-schema'
 
 const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }>()({

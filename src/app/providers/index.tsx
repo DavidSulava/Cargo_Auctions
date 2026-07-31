@@ -1,7 +1,7 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider } from '@tanstack/react-router'
 import { ToastViewport } from '@astryxdesign/core/Toast'
-import { router } from './router'
+import { router } from '../router'
 import { GlobalErrorToast } from './global-error-toast'
 import { queryClient } from './query-client'
 

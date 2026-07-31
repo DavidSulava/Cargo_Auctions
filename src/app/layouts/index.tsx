@@ -1,17 +1,9 @@
-import { Suspense, lazy } from 'react'
+import { Suspense } from 'react'
 import { Link, Outlet } from '@tanstack/react-router'
 import { AppShell } from '@astryxdesign/core/AppShell'
-import { TopNav } from '@astryxdesign/core/TopNav'
-import { TopNavHeading } from '@astryxdesign/core/TopNav'
-import { SideNav } from '@astryxdesign/core/SideNav'
-import { SideNavSection } from '@astryxdesign/core/SideNav'
-import { SideNavItem } from '@astryxdesign/core/SideNav'
+import { TopNav, TopNavHeading } from '@astryxdesign/core/TopNav'
+import { SideNav, SideNavSection, SideNavItem } from '@astryxdesign/core/SideNav'
 import { Skeleton } from '@astryxdesign/core/Skeleton'
-
-export const AuctionListPage = lazy(() => import('~/pages/auction-list'))
-export const AuctionDetailPage = lazy(() => import('~/pages/auction-detail'))
-export const AuctionBetsPage = lazy(() => import('~/pages/auction-bets'))
-export const BetFormPage = lazy(() => import('~/pages/bet-form'))
 
 function PageLoader() {
   return (
