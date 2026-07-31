@@ -58,7 +58,7 @@ export function AuctionListTable({ items, search }: Props) {
     {
       key: 'auc_type',
       header: 'Тип',
-      width: pixel(100),
+      width: pixel(120),
       renderCell: (item: Record<string, unknown>) => {
         const badge = AUCTION_TYPE_BADGE[item.auc_type as string] ?? { variant: 'neutral' as const, label: item.auc_type as string }
         return <Badge variant={badge.variant} label={badge.label} />
