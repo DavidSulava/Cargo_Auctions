@@ -247,12 +247,14 @@ describe('AuctionRepository', () => {
   it('placeBet succeeds with valid data', async () => {
     const { createMockRepository } = await import('./db')
     const repo = createMockRepository()
-    const list = repo.listAuctions({ page: 1, per_page: 1, is_available: true })
-    if (list.items.length === 0) return
-    const uuid = list.items[0].uuid
-    const result = repo.placeBet(uuid, { price: 25000, has_nds: true })
-    expect(result.price).toBe(25000)
-    expect(result.is_winner).toBe(true)
+    const all = repo.listAuctions({ page: 1, per_page: 47 })
+    const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
+    if (!up) return
+    const result = repo.placeBet(up.uuid, { price: 999999, has_nds: true })
+    expect(result.price).toBe(999999)
+    expect(result.is_winner).toBe(false)
+    const detail = repo.getAuctionDetail(up.uuid)
+    expect(detail!.trading_status).toBe('Leading')
   })
 
   it('placeBet throws 404 for unknown auction', async () => {
@@ -264,10 +266,85 @@ describe('AuctionRepository', () => {
   it('placeBet throws 422 for zero price', async () => {
     const { createMockRepository } = await import('./db')
     const repo = createMockRepository()
-    const list = repo.listAuctions({ page: 1, per_page: 1, is_available: true })
-    if (list.items.length === 0) return
-    const uuid = list.items[0].uuid
-    expect(() => repo.placeBet(uuid, { price: 0 })).toThrow('Цена должна быть больше 0')
+    const all = repo.listAuctions({ page: 1, per_page: 47 })
+    const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
+    if (!up) return
+    expect(() => repo.placeBet(up.uuid, { price: 0 })).toThrow('Цена должна быть больше 0')
+  })
+
+  it('placeBet rejects a price not above the current one on Up auctions', async () => {
+    const { createMockRepository } = await import('./db')
+    const repo = createMockRepository()
+    const all = repo.listAuctions({ page: 1, per_page: 47 })
+    const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
+    if (!up) return
+    expect(() => repo.placeBet(up.uuid, { price: up.current_price })).toThrow('Цена должна быть выше текущей')
+  })
+
+  it('placeBet rejects a price not below the current one on Down/Request auctions', async () => {
+    const { createMockRepository } = await import('./db')
+    const repo = createMockRepository()
+    const all = repo.listAuctions({ page: 1, per_page: 47 })
+    const down = all.items.find((a) => a.auc_type === 'Down' && a.status === 'Active')
+    if (!down) return
+    expect(() => repo.placeBet(down.uuid, { price: down.current_price })).toThrow('Цена должна быть ниже текущей')
+  })
+
+  it('placeBet is rejected on FixPrice auctions', async () => {
+    const { createMockRepository } = await import('./db')
+    const repo = createMockRepository()
+    const all = repo.listAuctions({ page: 1, per_page: 47 })
+    const fixPrice = all.items.find((a) => a.auc_type === 'FixPrice')
+    if (!fixPrice) return
+    expect(() => repo.placeBet(fixPrice.uuid, { price: 1000 })).toThrow('Ставки на этот аукцион закрыты')
+  })
+
+  it('placeBet never marks a winner while trading is active', async () => {
+    const { createMockRepository } = await import('./db')
+    const repo = createMockRepository()
+    const all = repo.listAuctions({ page: 1, per_page: 47 })
+    const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
+    if (!up) return
+    repo.placeBet(up.uuid, { price: 999999 })
+    const bets = repo.getBets(up.uuid)
+    expect(bets.items.filter((b) => b.is_winner)).toHaveLength(0)
+  })
+
+  it('all mock auctions satisfy status invariants', async () => {
+    const { createMockRepository } = await import('./db')
+    const { deriveTradingStatus } = await import('~/entities/auction/status-rules')
+    const repo = createMockRepository()
+    const all = repo.listAuctions({ page: 1, per_page: 47 })
+    for (const a of all.items) {
+      const bets = repo.getBets(a.uuid)
+      const winners = bets.items.filter((b) => b.is_winner)
+
+      expect(winners.length).toBeLessThanOrEqual(1)
+      for (const w of winners) {
+        expect(a.status).toBe('Finished')
+        expect(w.is_cancelled).toBe(false)
+      }
+      if (a.status === 'Finished' && bets.items.length > 0) {
+        expect(winners).toHaveLength(1)
+      }
+      if (a.status === 'Pending' || a.auc_type === 'FixPrice') {
+        expect(bets.items).toHaveLength(0)
+      }
+      if (a.status === 'Cancelled') {
+        expect(bets.items.every((b) => b.is_cancelled)).toBe(true)
+      }
+
+      const mine = bets.items.find((b) => b.carrier_name === 'Вы')
+      const expected = deriveTradingStatus(a.status, {
+        has_my_bet: mine !== undefined,
+        rank: mine?.rank ?? 0,
+        is_winner: mine?.is_winner ?? false,
+      })
+      expect(a.trading_status).toBe(expected)
+      expect(a.has_my_bet).toBe(mine !== undefined)
+      expect(a.is_bidder).toBe(mine !== undefined)
+      expect(a.can_set_bet).toBe(a.status === 'Active' && a.auc_type !== 'FixPrice')
+    }
   })
 
   it('createMockRepository produces isolated state — mutations dont leak', async () => {
@@ -275,15 +352,16 @@ describe('AuctionRepository', () => {
     const repo1 = createMockRepository()
     const repo2 = createMockRepository()
 
-    const target = repo1.listAuctions({ page: 1, per_page: 1, is_available: true })
-    if (target.items.length === 0) return
-    const uuid = target.items[0].uuid
-    repo1.placeBet(uuid, { price: 99999 })
+    const target = repo1.listAuctions({ page: 1, per_page: 47 })
+    const up = target.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
+    if (!up) return
+    const uuid = up.uuid
+    repo1.placeBet(uuid, { price: 999999 })
 
     const detail1 = repo1.getAuctionDetail(uuid)
     const detail2 = repo2.getAuctionDetail(uuid)
 
-    expect(detail1!.trading.current_price).toBe(99999)
-    expect(detail2!.trading.current_price).not.toBe(99999)
+    expect(detail1!.trading.current_price).toBe(999999)
+    expect(detail2!.trading.current_price).not.toBe(999999)
   })
 })

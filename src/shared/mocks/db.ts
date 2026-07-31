@@ -1,5 +1,6 @@
-import type { AuctionListItem, AuctionType, AuctionStatus, TradingStatus, CargoBodyType, AuctionListResponse, AuctionDetail } from '~/entities/auction/types'
+import type { AuctionListItem, AuctionType, AuctionStatus, CargoBodyType, AuctionListResponse, AuctionDetail } from '~/entities/auction/types'
 import type { Bet, BetListResponse, PlaceBetRequest, PlaceBetResponse } from '~/entities/bet/types'
+import { canPlaceBet, deriveTradingStatus, finalizeBets, isPriceDirectionValid, type MyBetState } from '~/entities/auction/status-rules'
 import { CITIES } from '~/shared/lib/cities'
 
 const CARGO_NAMES = [
@@ -12,6 +13,12 @@ const BODY_TYPES: CargoBodyType[] = ['Tent', 'Refrigerator', 'Isothermal', 'Flat
 
 const STATUSES: AuctionStatus[] = ['Active', 'Closed', 'Cancelled', 'Pending', 'Finished']
 const AUCTION_TYPES: AuctionType[] = ['Request', 'Up', 'Down', 'FixPrice']
+
+const CARRIERS = [
+  'ООО "Логистика Про"', 'ИП Иванов А.В.', 'ООО "ТрансСервис"',
+  'АО "Грузоперевозки"', 'ИП Петров С.М.', 'ООО "АвтоТрейд"',
+  'ООО "СКАЙ-ЛОГИСТИКа"', 'ИП Смирнова Е.О.',
+]
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -36,7 +43,38 @@ interface DetailEnrichmentFields {
   unload_date_to?: string
 }
 
-function generateMockAuction(index: number): AuctionListItem & DetailEnrichmentFields {
+interface MockScenario {
+  status: AuctionStatus
+  auc_type?: AuctionType
+  include_me?: boolean
+  my_position?: 1 | 2
+}
+
+const FIXED_SCENARIOS: MockScenario[] = [
+  { status: 'Active', auc_type: 'Down', include_me: true, my_position: 1 },
+  { status: 'Active', auc_type: 'Up', include_me: true, my_position: 2 },
+  { status: 'Finished', auc_type: 'Down', include_me: true, my_position: 1 },
+  { status: 'Finished', auc_type: 'Up', include_me: true, my_position: 2 },
+  { status: 'Cancelled', auc_type: 'Request', include_me: true },
+  { status: 'Pending', auc_type: 'Up' },
+  { status: 'Closed', auc_type: 'Down', include_me: true, my_position: 2 },
+  { status: 'Active', auc_type: 'Up' },
+]
+
+function randomScenario(index: number): MockScenario {
+  if (index < FIXED_SCENARIOS.length) return FIXED_SCENARIOS[index]
+  const status = randomFrom(STATUSES)
+  const aucType = randomFrom(AUCTION_TYPES)
+  const includeMe = status !== 'Pending' && aucType !== 'FixPrice' && Math.random() < 0.25
+  return {
+    status,
+    auc_type: aucType,
+    include_me: includeMe || undefined,
+    my_position: includeMe ? (Math.random() < 0.5 ? 1 : 2) : undefined,
+  }
+}
+
+function generateMockAuction(index: number, scenario: MockScenario): AuctionListItem & DetailEnrichmentFields {
   const uuid = `auction-${String(index).padStart(4, '0')}`
   const loadCity = randomFrom(CITIES)
   let unloadCity = randomFrom(CITIES)
@@ -47,8 +85,8 @@ function generateMockAuction(index: number): AuctionListItem & DetailEnrichmentF
   const loadFrom = loadDate.toISOString().split('T')[0]
   const loadTo = new Date(loadDate.getTime() + randomInt(1, 3) * 86400000).toISOString().split('T')[0]
 
-  const status = randomFrom(STATUSES)
-  const aucType = randomFrom(AUCTION_TYPES)
+  const status = scenario.status
+  const aucType = scenario.auc_type ?? randomFrom(AUCTION_TYPES)
   const basePrice = randomInt(10000, 200000)
   const step = aucType === 'FixPrice' ? 0 : randomInt(500, 5000)
 
@@ -57,7 +95,7 @@ function generateMockAuction(index: number): AuctionListItem & DetailEnrichmentF
     cargo_num: `CARGO-${String(index).padStart(5, '0')}`,
     auc_type: aucType,
     status,
-    trading_status: randomFrom<TradingStatus>(['Leading', 'Losing', 'Winner', 'Participant', 'None']),
+    trading_status: 'None',
     load_city: loadCity,
     unload_city: unloadCity,
     load_date_from: loadFrom,
@@ -70,7 +108,7 @@ function generateMockAuction(index: number): AuctionListItem & DetailEnrichmentF
     price_per_km: randomInt(20, 150),
     bet_step: step,
     has_my_bet: false,
-    can_set_bet: status === 'Active',
+    can_set_bet: canPlaceBet(status, aucType),
     is_available: status === 'Active',
     is_bidder: false,
     hide_bets_history: Math.random() > 0.85,
@@ -86,32 +124,44 @@ function generateMockAuction(index: number): AuctionListItem & DetailEnrichmentF
   }
 }
 
-function generateMockBets(auctionUuid: string, count: number): Bet[] {
-  const carriers = [
-    'ООО "Логистика Про"', 'ИП Иванов А.В.', 'ООО "ТрансСервис"',
-    'АО "Грузоперевозки"', 'ИП Петров С.М.', 'ООО "АвтоТрейд"',
-    'ООО "СКАЙ-ЛОГИСТИКа"', 'ИП Смирнова Е.О.',
-  ]
+function generateMockBets(auction: AuctionListItem, scenario: MockScenario): Bet[] {
+  const ascending = auction.auc_type !== 'Up'
+  const includeMe = scenario.include_me === true
+  const myIndex = includeMe ? (scenario.my_position === 2 ? 1 : 0) : -1
+  const total = randomInt(1, 6) + (includeMe ? 1 : 0)
 
-  return Array.from({ length: count }, (_, i) => {
-    const price = randomInt(5000, 200000)
+  const prices: number[] = []
+  let last = auction.current_price
+  for (let i = 0; i < total; i++) {
+    const delta = randomInt(1, 5) * Math.max(auction.bet_step, 1)
+    const price = ascending ? Math.max(1000, last - delta) : last + delta
+    prices.push(price)
+    last = price
+  }
+  prices.sort(ascending ? (a, b) => a - b : (a, b) => b - a)
+
+  return prices.map((price, i) => {
     const hasNds = Math.random() > 0.5
     const ndsRate = hasNds ? 1.2 : 1
     return {
-      id: `bet-${auctionUuid}-${i}`,
-      auction_uuid: auctionUuid,
-      carrier_name: carriers[i % carriers.length],
+      id: `bet-${auction.uuid}-${i}`,
+      auction_uuid: auction.uuid,
+      carrier_name: i === myIndex ? 'Вы' : CARRIERS[randomInt(0, CARRIERS.length - 1)],
       price,
       price_with_nds: Math.round(price * ndsRate),
       price_without_nds: Math.round(price / ndsRate),
       has_nds: hasNds,
-      is_winner: i === 0,
-      is_cancelled: Math.random() > 0.85,
-      cancel_reason: undefined,
-      rank: i + 1,
+      is_winner: false,
+      is_cancelled: false,
+      rank: 0,
       created_at: new Date(Date.now() - i * 3600000).toISOString(),
     }
   })
+}
+
+function findMyBet(bets: Bet[] | undefined): MyBetState {
+  const mine = bets?.find((b) => b.carrier_name === 'Вы')
+  return { has_my_bet: mine !== undefined, rank: mine?.rank ?? 0, is_winner: mine?.is_winner ?? false }
 }
 
 type AuctionFilterParams = {
@@ -188,14 +238,27 @@ export interface AuctionRepository {
   placeBet(auctionUuid: string, data: PlaceBetRequest): PlaceBetResponse
 }
 
-const _mockAuctions: (AuctionListItem & DetailEnrichmentFields)[] = Array.from({ length: 47 }, (_, i) => generateMockAuction(i))
+const _scenarios: MockScenario[] = Array.from({ length: 47 }, (_, i) => randomScenario(i))
+const _mockAuctions: (AuctionListItem & DetailEnrichmentFields)[] = _scenarios.map((scenario, i) => generateMockAuction(i, scenario))
 
 const _mockBetsMap = new Map<string, Bet[]>()
-_mockAuctions.forEach((item) => {
-  const betCount = randomInt(0, 12)
-  if (betCount > 0) {
-    _mockBetsMap.set(item.uuid, generateMockBets(item.uuid, betCount))
+_mockAuctions.forEach((auction, i) => {
+  if (auction.status === 'Pending' || auction.auc_type === 'FixPrice') return
+  let bets = generateMockBets(auction, _scenarios[i])
+  if (auction.status === 'Cancelled') {
+    bets = bets.map((b) => ({ ...b, is_cancelled: true }))
   }
+  const finalized = finalizeBets(bets, auction.auc_type, auction.status)
+  _mockBetsMap.set(auction.uuid, finalized)
+  const leader = finalized.find((b) => b.rank === 1)
+  if (leader) auction.current_price = leader.price
+})
+
+_mockAuctions.forEach((auction) => {
+  const mine = findMyBet(_mockBetsMap.get(auction.uuid))
+  auction.has_my_bet = mine.has_my_bet
+  auction.is_bidder = mine.has_my_bet
+  auction.trading_status = deriveTradingStatus(auction.status, mine)
 })
 
 export function createMockRepository(): AuctionRepository {
@@ -216,6 +279,8 @@ export function createMockRepository(): AuctionRepository {
     getAuctionDetail(uuid: string) {
       const item = auctions.find((a) => a.uuid === uuid)
       if (!item) return undefined
+
+      const myBet = bets.get(item.uuid)?.find((b) => b.carrier_name === 'Вы' && !b.is_cancelled)
 
       return {
         ...item,
@@ -247,12 +312,16 @@ export function createMockRepository(): AuctionRepository {
         trading: {
           can_set_bet: item.can_set_bet,
           current_price: item.current_price,
-          available_price: item.current_price + item.bet_step * 2,
-          min_price: item.auc_type === 'Down' ? 1000 : item.current_price,
+          available_price: item.auc_type === 'Up'
+            ? item.current_price + item.bet_step * 2
+            : item.auc_type === 'FixPrice'
+              ? item.current_price
+              : Math.max(1000, item.current_price - item.bet_step * 2),
+          min_price: item.auc_type === 'Down' || item.auc_type === 'Request' ? 1000 : item.current_price,
           max_price: item.auc_type === 'Up' ? item.current_price * 2 : undefined,
           step: item.bet_step,
-          my_bet: item.has_my_bet
-            ? { value: item.current_price + item.bet_step, has_nds: true }
+          my_bet: myBet
+            ? { value: myBet.price, has_nds: myBet.has_nds }
             : undefined,
         },
         cargo_description: item.cargo_description,
@@ -278,54 +347,73 @@ export function createMockRepository(): AuctionRepository {
       if (!auction) {
         throw { status: 404, message: 'Аукцион не найден' }
       }
-      if (!auction.can_set_bet) {
+      if (!canPlaceBet(auction.status, auction.auc_type)) {
         throw { status: 422, message: 'Ставки на этот аукцион закрыты', details: { can_set_bet: false } }
       }
       if (data.price <= 0) {
         throw { status: 422, message: 'Цена должна быть больше 0', details: { price: 'must be positive' } }
       }
-
-      auction.current_price = data.price
-      auction.has_my_bet = true
-      auction.is_bidder = true
-      auction.trading_status = 'Leading'
+      if (!isPriceDirectionValid(auction.auc_type, data.price, auction.current_price)) {
+        const message = auction.auc_type === 'Up'
+          ? 'Цена должна быть выше текущей'
+          : 'Цена должна быть ниже текущей'
+        throw { status: 422, message, details: { price: message } }
+      }
 
       const existing = bets.get(auctionUuid) ?? []
-      const existingBetIndex = existing.findIndex((b) => b.carrier_name === 'Вы')
+      const existingIndex = existing.findIndex((b) => b.carrier_name === 'Вы')
+      const hasNds = data.has_nds ?? true
+      const ndsRate = hasNds ? 1.2 : 1
+      const now = new Date().toISOString()
 
-      if (existingBetIndex !== -1) {
-        const old = existing[existingBetIndex]
-        existing[existingBetIndex] = {
+      let myBet: Bet
+      if (existingIndex !== -1) {
+        const old = existing[existingIndex]
+        myBet = {
           ...old,
           price: data.price,
-          price_with_nds: Math.round(data.price * (data.has_nds ? 1.2 : 1)),
-          price_without_nds: Math.round(data.price / (data.has_nds ? 1.2 : 1)),
-          has_nds: data.has_nds ?? true,
-          created_at: new Date().toISOString(),
+          price_with_nds: Math.round(data.price * ndsRate),
+          price_without_nds: Math.round(data.price / ndsRate),
+          has_nds: hasNds,
+          is_cancelled: false,
+          created_at: now,
         }
-        bets.set(auctionUuid, existing)
+        existing[existingIndex] = myBet
       } else {
-        const bet: Bet = {
+        myBet = {
           id: `bet-${auctionUuid}-${Date.now()}`,
           auction_uuid: auctionUuid,
           carrier_name: 'Вы',
           price: data.price,
-          price_with_nds: Math.round(data.price * (data.has_nds ? 1.2 : 1)),
-          price_without_nds: Math.round(data.price / (data.has_nds ? 1.2 : 1)),
-          has_nds: data.has_nds ?? true,
-          is_winner: true,
+          price_with_nds: Math.round(data.price * ndsRate),
+          price_without_nds: Math.round(data.price / ndsRate),
+          has_nds: hasNds,
+          is_winner: false,
           is_cancelled: false,
-          rank: 1,
-          created_at: new Date().toISOString(),
+          rank: 0,
+          created_at: now,
         }
-        bets.set(auctionUuid, [bet, ...existing])
+        existing.push(myBet)
       }
 
+      const finalized = finalizeBets(existing, auction.auc_type, auction.status)
+      bets.set(auctionUuid, finalized)
+      const mine = finalized.find((b) => b.id === myBet.id)!
+
+      auction.current_price = mine.price
+      auction.has_my_bet = true
+      auction.is_bidder = true
+      auction.trading_status = deriveTradingStatus(auction.status, {
+        has_my_bet: true,
+        rank: mine.rank,
+        is_winner: mine.is_winner,
+      })
+
       return {
-        id: existingBetIndex !== -1 ? existing[existingBetIndex].id : `bet-${auctionUuid}-${Date.now()}`,
+        id: mine.id,
         price: data.price,
-        has_nds: data.has_nds ?? true,
-        is_winner: true,
+        has_nds: hasNds,
+        is_winner: mine.is_winner,
       }
     },
   }
