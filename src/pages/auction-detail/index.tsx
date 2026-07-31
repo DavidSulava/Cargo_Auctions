@@ -23,10 +23,10 @@ const STATUS_BADGE: Record<string, { variant: 'success' | 'warning' | 'error' | 
 }
 
 const AUCTION_TYPE_BADGE: Record<string, { variant: 'purple' | 'teal' | 'pink' | 'neutral'; label: string }> = {
-  Request: { variant: 'purple', label: 'Request' },
-  Up: { variant: 'teal', label: 'Up' },
-  Down: { variant: 'pink', label: 'Down' },
-  FixPrice: { variant: 'neutral', label: 'FixPrice' },
+  Request: { variant: 'purple', label: 'Заявка' },
+  Up: { variant: 'teal', label: 'Повышение' },
+  Down: { variant: 'pink', label: 'Понижение' },
+  FixPrice: { variant: 'neutral', label: 'Фиксированная' },
 }
 
 export default function AuctionDetailPage() {
@@ -68,7 +68,7 @@ export default function AuctionDetailPage() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Badge variant={AUCTION_TYPE_BADGE[data.auc_type]?.variant ?? 'neutral'} label={data.auc_type} />
+            <Badge variant={AUCTION_TYPE_BADGE[data.auc_type]?.variant ?? 'neutral'} label={AUCTION_TYPE_BADGE[data.auc_type]?.label ?? data.auc_type} />
             <Badge variant={statusBadge.variant} label={statusBadge.label} />
           </div>
           <h1 className="text-2xl font-bold text-primary">{data.cargo_num}</h1>
@@ -76,6 +76,8 @@ export default function AuctionDetailPage() {
         <Button
           label={data.trading.my_bet ? 'Изменить ставку' : 'Сделать ставку'}
           variant="primary"
+          isDisabled={!data.trading.can_set_bet}
+          tooltip={data.trading.can_set_bet ? undefined : 'Ставки на этот аукцион закрыты'}
           onClick={() => navigate({ to: `/auctions/${uuid}/bid` })}
         />
       </div>

@@ -62,11 +62,9 @@ export default function AuctionListPage() {
       <Section>
         {isLoading ? (
           <div className="space-y-3 p-4">
-            <Skeleton width="100%" height="40px" />
-            <Skeleton width="100%" height="40px" />
-            <Skeleton width="100%" height="40px" />
-            <Skeleton width="100%" height="40px" />
-            <Skeleton width="100%" height="40px" />
+              {Array.from({ length: 5 }, (_, i) => (
+                  <Skeleton key={i} width="100%" height="40px" />
+              ))}
           </div>
         ) : data && data.items.length === 0 ? (
           <div className="content-enter space-y-4">

@@ -26,11 +26,11 @@ const TRADING_STATUS: Record<string, { variant: 'blue' | 'green' | 'orange' | 'p
   None: { variant: 'neutral', label: 'Не участвуете' },
 }
 
-const AUCTION_TYPE_COLORS: Record<string, 'purple' | 'teal' | 'pink' | 'neutral'> = {
-  Request: 'purple',
-  Up: 'teal',
-  Down: 'pink',
-  FixPrice: 'neutral',
+const AUCTION_TYPE_BADGE: Record<string, { variant: 'purple' | 'teal' | 'pink' | 'neutral'; label: string }> = {
+  Request: { variant: 'purple', label: 'Заявка' },
+  Up: { variant: 'teal', label: 'Повышение' },
+  Down: { variant: 'pink', label: 'Понижение' },
+  FixPrice: { variant: 'neutral', label: 'Фиксированная' },
 }
 
 export function AuctionListTable({ items, search }: Props) {
@@ -59,9 +59,10 @@ export function AuctionListTable({ items, search }: Props) {
       key: 'auc_type',
       header: 'Тип',
       width: pixel(100),
-      renderCell: (item) => (
-        <Badge variant={AUCTION_TYPE_COLORS[item.auc_type as string] ?? 'neutral'} label={item.auc_type as string} />
-      ),
+      renderCell: (item: Record<string, unknown>) => {
+        const badge = AUCTION_TYPE_BADGE[item.auc_type as string] ?? { variant: 'neutral' as const, label: item.auc_type as string }
+        return <Badge variant={badge.variant} label={badge.label} />
+      },
     },
     {
       key: 'status',
