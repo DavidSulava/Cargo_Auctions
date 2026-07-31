@@ -8,19 +8,19 @@ import { Banner } from '@astryxdesign/core/Banner'
 import { Section } from '@astryxdesign/core/Section'
 import { useState } from 'react'
 import type { AuctionDetail } from '~/entities/auction/types'
-import type { PlaceBetRequest } from '~/entities/bet/types'
 import { ApiError } from '~/shared/api/client'
 import { priceWithVat } from '~/shared/lib/vat'
+import { usePlaceBet } from '~/entities/bet/queries'
 import { createBetSchema, type BetFormValues } from './bet-schema'
 
 interface Props {
   auction: AuctionDetail
-  isPending: boolean
-  onSubmit: (data: PlaceBetRequest) => Promise<void>
+  onComplete: () => void
   onBack: () => void
 }
 
-export function BetForm({ auction, isPending, onSubmit, onBack }: Props) {
+export function BetForm({ auction, onComplete, onBack }: Props) {
+  const { mutateAsync, isPending } = usePlaceBet(auction.uuid)
   const betSchema = createBetSchema(auction.trading)
   const {
     handleSubmit,
@@ -40,10 +40,21 @@ export function BetForm({ auction, isPending, onSubmit, onBack }: Props) {
   const hasNds = watch('has_nds') ?? true
   const [submitError, setSubmitError] = useState<string | null>(null)
 
+  if (!auction.trading.can_set_bet) {
+    return (
+      <div className="content-enter">
+        <Banner status="warning" title="Ставки закрыты">
+          На этот аукцион нельзя сделать ставку.
+        </Banner>
+      </div>
+    )
+  }
+
   const handleFormSubmit = async (formData: BetFormValues) => {
     setSubmitError(null)
     try {
-      await onSubmit({ price: formData.price, has_nds: formData.has_nds } as PlaceBetRequest)
+      await mutateAsync({ price: formData.price, has_nds: formData.has_nds })
+      onComplete()
     } catch (err) {
       if (err instanceof ApiError && err.status === 422 && err.details) {
         const details = err.details as Record<string, unknown>
