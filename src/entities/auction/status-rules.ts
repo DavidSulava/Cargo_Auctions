@@ -52,7 +52,7 @@ export function finalizeBets(bets: Bet[], aucType: AuctionType, status: AuctionS
     ? (a: Bet, b: Bet) => b.price - a.price
     : (a: Bet, b: Bet) => a.price - b.price
 
-  const sorted = [...bets].sort((a, b) => {
+  const sorted = bets.toSorted((a, b) => {
     if (a.is_cancelled !== b.is_cancelled) return a.is_cancelled ? 1 : -1
     return compare(a, b)
   })

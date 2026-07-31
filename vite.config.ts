@@ -14,4 +14,7 @@ export default defineConfig({
     port: 3000,
   },
   base: '/Cargo_Auctions/',
+  build: {
+    target: 'es2023',
+  },
 })

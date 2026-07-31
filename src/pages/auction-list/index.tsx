@@ -35,7 +35,7 @@ export default function AuctionListPage() {
     (page: number) => {
       navigate({ to: '/', search: { page } as never })
     },
-    [filters, navigate],
+    [navigate],
   )
 
   const clearFilters = useCallback(() => {
