@@ -45,7 +45,7 @@ export default function BetFormPage() {
   }
 
   return (
-    <div className="content-enter p-4 space-y-4 max-w-3xl">
+    <div className="content-enter p-4 space-y-4">
       <div className="flex items-center justify-between gap-2">
         <Button label="← Назад к аукциону" variant="ghost" onClick={backToAuction} />
         <Badge variant="neutral" label={AUCTION_TYPE_LABEL[auction.auc_type] ?? auction.auc_type} />
