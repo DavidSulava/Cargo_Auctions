@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { TextInput } from '@astryxdesign/core/TextInput'
 import { NumberInput } from '@astryxdesign/core/NumberInput'
 import { Selector } from '@astryxdesign/core/Selector'
@@ -14,7 +13,6 @@ interface Props {
   filters: FilterParams
   onFilterChange: (key: string, value: unknown) => void
   onClear: () => void
-  resetKey: number
 }
 
 const STATUS_OPTIONS = [
@@ -44,17 +42,9 @@ function boundValue(value: unknown): string {
   return String(value)
 }
 
-export function AuctionFiltersPanel({ filters, onFilterChange, onClear, resetKey }: Props) {
-  const [localAvailable, setLocalAvailable] = useState<boolean | undefined>(undefined)
-  const [localBidder, setLocalBidder] = useState<boolean | undefined>(undefined)
-
-  useEffect(() => {
-    setLocalAvailable(undefined)
-    setLocalBidder(undefined)
-  }, [resetKey])
-
-  const isAvailable = localAvailable ?? (filters.is_available === true)
-  const isBidder = localBidder ?? (filters.is_bidder === true)
+export function AuctionFiltersPanel({ filters, onFilterChange, onClear }: Props) {
+  const isAvailable = filters.is_available === true
+  const isBidder = filters.is_bidder === true
 
   return (
     <Section>
@@ -131,7 +121,6 @@ export function AuctionFiltersPanel({ filters, onFilterChange, onClear, resetKey
               label="Доступен"
               value={isAvailable}
               onChange={(checked) => {
-                setLocalAvailable(checked)
                 onFilterChange('is_available', checked ? 'true' : undefined)
               }}
             />
@@ -139,7 +128,6 @@ export function AuctionFiltersPanel({ filters, onFilterChange, onClear, resetKey
               label="Я участник"
               value={isBidder}
               onChange={(checked) => {
-                setLocalBidder(checked)
                 onFilterChange('is_bidder', checked ? 'true' : undefined)
               }}
             />

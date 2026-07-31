@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Button } from '@astryxdesign/core/Button'
 import { useAuctionList } from '~/entities/auction/queries'
@@ -13,7 +13,6 @@ import { Section } from '@astryxdesign/core/Section'
 export default function AuctionListPage() {
   const filters = useSearch({ from: '/' })
   const navigate = useNavigate()
-  const [resetKey, setResetKey] = useState(0)
 
   const { data, isLoading, isError, error } = useAuctionList(filters as never)
   const totalPages = data ? Math.ceil(data.total / data.per_page) : 0
@@ -39,7 +38,6 @@ export default function AuctionListPage() {
   )
 
   const clearFilters = useCallback(() => {
-    setResetKey((k) => k + 1)
     navigate({ to: '/' })
   }, [navigate])
 
@@ -57,7 +55,7 @@ export default function AuctionListPage() {
     <div className="p-4 space-y-4">
       <h1 className="text-2xl font-bold text-primary">Аукционы</h1>
 
-      <AuctionFiltersPanel filters={filters} onFilterChange={setFilter} onClear={clearFilters} resetKey={resetKey} />
+      <AuctionFiltersPanel filters={filters} onFilterChange={setFilter} onClear={clearFilters} />
 
       <Section>
         {isLoading ? (
