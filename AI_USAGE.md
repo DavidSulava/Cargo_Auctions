@@ -30,7 +30,14 @@ Cargo Auctions SPA — React 19 + TypeScript 6 + TanStack Router/Query + RHF + Z
 ### Forms
 - React Hook Form + Zod resolver.
 - Bet amount validation: min/max/step from auction data, passed as contextual params to `createBetSchema(min, max, step)`.
-- Bet form opens in a Dialog (Astryx `<a-dialog>`).
+- Bet form is a dedicated page (`/auctions/$uuid/bid`), not a dialog.
+
+### VAT semantics (decision)
+- Bet price is entered and ranked **without VAT** (comparison base, as in 44-FZ/223-FZ procurement).
+- `has_nds=true` → payer of VAT: `price_with_nds = base × 1.2`, `price_without_nds = base`.
+- `has_nds=false` → both equal the base.
+- Rate constant + helpers live in `src/shared/lib/vat.ts` (`VAT_RATE = 0.2`).
+- `current_price`, `available_price`, `min/max/step` are always in the «без НДС» scale.
 
 ### Mock Data
 - `src/shared/mocks/db.ts`: stateful in-memory store with 47 mock auctions, bets per auction, filter/paginate/mutate.
@@ -44,7 +51,7 @@ Cargo Auctions SPA — React 19 + TypeScript 6 + TanStack Router/Query + RHF + Z
 ### FSD Structure
 - `entities/` — domain types (auction, bet)
 - `pages/` — page-level components (4 pages)
-- `widgets/` — reusable blocks (filters panel, table, bet form modal)
+- `widgets/` — reusable blocks (filters panel, table, bet form)
 - `shared/` — API client, MSW, Zod schemas, utilities
 - `app/` — entry points, providers, router definition
 

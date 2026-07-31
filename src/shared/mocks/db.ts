@@ -2,6 +2,7 @@ import type { AuctionListItem, AuctionType, AuctionStatus, CargoBodyType, Auctio
 import type { Bet, BetListResponse, PlaceBetRequest, PlaceBetResponse } from '~/entities/bet/types'
 import { canPlaceBet, deriveTradingStatus, finalizeBets, isPriceDirectionValid, type MyBetState } from '~/entities/auction/status-rules'
 import { CITIES } from '~/shared/lib/cities'
+import { priceWithVat } from '~/shared/lib/vat'
 
 const CARGO_NAMES = [
   'Строительные материалы', 'Продукты питания', 'Оборудование',
@@ -142,14 +143,13 @@ function generateMockBets(auction: AuctionListItem, scenario: MockScenario): Bet
 
   return prices.map((price, i) => {
     const hasNds = Math.random() > 0.5
-    const ndsRate = hasNds ? 1.2 : 1
     return {
       id: `bet-${auction.uuid}-${i}`,
       auction_uuid: auction.uuid,
       carrier_name: i === myIndex ? 'Вы' : CARRIERS[randomInt(0, CARRIERS.length - 1)],
       price,
-      price_with_nds: Math.round(price * ndsRate),
-      price_without_nds: Math.round(price / ndsRate),
+      price_with_nds: hasNds ? priceWithVat(price) : price,
+      price_without_nds: price,
       has_nds: hasNds,
       is_winner: false,
       is_cancelled: false,
@@ -363,7 +363,6 @@ export function createMockRepository(): AuctionRepository {
       const existing = bets.get(auctionUuid) ?? []
       const existingIndex = existing.findIndex((b) => b.carrier_name === 'Вы')
       const hasNds = data.has_nds ?? true
-      const ndsRate = hasNds ? 1.2 : 1
       const now = new Date().toISOString()
 
       let myBet: Bet
@@ -372,8 +371,8 @@ export function createMockRepository(): AuctionRepository {
         myBet = {
           ...old,
           price: data.price,
-          price_with_nds: Math.round(data.price * ndsRate),
-          price_without_nds: Math.round(data.price / ndsRate),
+          price_with_nds: hasNds ? priceWithVat(data.price) : data.price,
+          price_without_nds: data.price,
           has_nds: hasNds,
           is_cancelled: false,
           created_at: now,
@@ -385,8 +384,8 @@ export function createMockRepository(): AuctionRepository {
           auction_uuid: auctionUuid,
           carrier_name: 'Вы',
           price: data.price,
-          price_with_nds: Math.round(data.price * ndsRate),
-          price_without_nds: Math.round(data.price / ndsRate),
+          price_with_nds: hasNds ? priceWithVat(data.price) : data.price,
+          price_without_nds: data.price,
           has_nds: hasNds,
           is_winner: false,
           is_cancelled: false,

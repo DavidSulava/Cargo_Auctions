@@ -76,7 +76,7 @@ const mockBets = {
       carrier_name: 'ИП Иванов',
       price: 148000,
       price_with_nds: 177600,
-      price_without_nds: 123333,
+      price_without_nds: 148000,
       has_nds: true,
       is_winner: false,
       is_cancelled: false,
@@ -162,10 +162,11 @@ test.describe('Cargo Auctions SPA', () => {
   test('bet form page — renders form', async ({ page }) => {
     mockApi(page)
     await page.goto(`${BASE}/auctions/${UUID}/bid`)
-    await expect(page.getByTitle('Сделать ставку')).toBeVisible()
-    await expect(page.getByText('Текущая цена:')).toBeVisible()
-    await expect(page.getByText('Ваша ставка (₽)')).toBeVisible()
-    await expect(page.getByText('С НДС')).toBeVisible()
+    await expect(page.getByText('Сделать ставку').first()).toBeVisible()
+    await expect(page.getByText('Текущая цена (без НДС)')).toBeVisible()
+    await expect(page.getByText('Ваша ставка (₽, без НДС)')).toBeVisible()
+    await expect(page.getByText('С НДС', { exact: true })).toBeVisible()
+    await expect(page.getByText(/К оплате с НДС: 180\s*000 ₽/)).toBeVisible()
     await expect(page.getByText('Подтвердить')).toBeVisible()
   })
 
@@ -195,6 +196,6 @@ test.describe('Cargo Auctions SPA', () => {
     mockApi(page)
     await page.goto(`${BASE}/auctions/${UUID}`)
     await page.getByRole('link', { name: 'Аукционы' }).click()
-    await expect(page).toHaveURL(/\/Cargo_Auctions\/?$/)
+    await expect(page).toHaveURL(/\/Cargo_Auctions\/?(\?|$)/)
   })
 })

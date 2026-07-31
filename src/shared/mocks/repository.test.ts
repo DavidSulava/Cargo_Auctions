@@ -257,6 +257,34 @@ describe('AuctionRepository', () => {
     expect(detail!.trading_status).toBe('Leading')
   })
 
+  it('placeBet with has_nds=true stores gross as +VAT and base as net', async () => {
+    const { createMockRepository } = await import('./db')
+    const repo = createMockRepository()
+    const all = repo.listAuctions({ page: 1, per_page: 47 })
+    const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
+    if (!up) return
+    const price = 700000
+    repo.placeBet(up.uuid, { price, has_nds: true })
+    const mine = repo.getBets(up.uuid).items.find((b) => b.carrier_name === 'Вы')
+    expect(mine!.price).toBe(price)
+    expect(mine!.price_without_nds).toBe(price)
+    expect(mine!.price_with_nds).toBe(price * 1.2)
+  })
+
+  it('placeBet with has_nds=false keeps gross and net equal to the base', async () => {
+    const { createMockRepository } = await import('./db')
+    const repo = createMockRepository()
+    const all = repo.listAuctions({ page: 1, per_page: 47 })
+    const up = all.items.find((a) => a.auc_type === 'Up' && a.status === 'Active')
+    if (!up) return
+    const price = 700000
+    repo.placeBet(up.uuid, { price, has_nds: false })
+    const mine = repo.getBets(up.uuid).items.find((b) => b.carrier_name === 'Вы')
+    expect(mine!.price).toBe(price)
+    expect(mine!.price_with_nds).toBe(price)
+    expect(mine!.price_without_nds).toBe(price)
+  })
+
   it('placeBet throws 404 for unknown auction', async () => {
     const { createMockRepository } = await import('./db')
     const repo = createMockRepository()
