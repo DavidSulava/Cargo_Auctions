@@ -1,12 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchBets, placeBet } from './api'
-import { auctionKeys } from '~/entities/auction/queries'
 import type { PlaceBetRequest } from './types'
-
-export const betKeys = {
-  all: () => ['bets'] as const,
-  list: (auctionUuid: string) => [...betKeys.all(), auctionUuid] as const,
-}
+import { auctionKeys, betKeys } from '~/shared/lib/query-keys'
 
 export function useBetList(auctionUuid: string) {
   return useQuery({

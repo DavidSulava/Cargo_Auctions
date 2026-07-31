@@ -1,5 +1,9 @@
 import type { AuctionStatus, AuctionType, TradingStatus } from './types'
-import type { Bet } from '~/entities/bet/types'
+
+interface RankableBet {
+  price: number
+  is_cancelled: boolean
+}
 
 export function canPlaceBet(status: AuctionStatus, aucType: AuctionType): boolean {
   return status === 'Active' && aucType !== 'FixPrice'
@@ -47,10 +51,14 @@ export function deriveTradingStatus(status: AuctionStatus, mine: MyBetState): Tr
   }
 }
 
-export function finalizeBets(bets: Bet[], aucType: AuctionType, status: AuctionStatus): Bet[] {
+export function finalizeBets<T extends RankableBet>(
+  bets: T[],
+  aucType: AuctionType,
+  status: AuctionStatus,
+): (T & { rank: number; is_winner: boolean })[] {
   const compare = aucType === 'Up'
-    ? (a: Bet, b: Bet) => b.price - a.price
-    : (a: Bet, b: Bet) => a.price - b.price
+    ? (a: RankableBet, b: RankableBet) => b.price - a.price
+    : (a: RankableBet, b: RankableBet) => a.price - b.price
 
   const sorted = bets.toSorted((a, b) => {
     if (a.is_cancelled !== b.is_cancelled) return a.is_cancelled ? 1 : -1
