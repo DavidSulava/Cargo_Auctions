@@ -2,6 +2,8 @@
 
 ![Cargo Auctions](.github/main-page.jpg)
 
+Проект можно посмотреть по ссылке: [GitHub Pages](https://davidsulava.github.io/Cargo_Auctions/?cargo_num=&statuses=%5B%5D&load_city=&unload_city=&load_date_from=&load_date_to=&page=1&per_page=10)
+
 SPA для грузовых аукционов. React 19 + TypeScript + TanStack Router/Query + RHF + Zod + MSW + Astryx + Tailwind v4 + Docker.
 
 ## Стек
