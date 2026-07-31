@@ -1,5 +1,7 @@
 # Cargo Auctions
 
+![Cargo Auctions](.github/main-page.jpg)
+
 SPA для грузовых аукционов. React 19 + TypeScript + TanStack Router/Query + RHF + Zod + MSW + Astryx + Tailwind v4 + Docker.
 
 ## Стек
