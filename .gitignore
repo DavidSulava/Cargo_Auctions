@@ -10,7 +10,9 @@ lerna-debug.log*
 # Agent files
 AGENTS.md
 CLAUDE.md
+CONTEXT.md
 .claude
+wayfinder/
 
 node_modules
 dist
