@@ -1,6 +1,6 @@
-import type { AuctionListItem, AuctionType, AuctionStatus, CargoBodyType, AuctionListResponse, AuctionDetail } from '~/entities/auction/types'
-import type { Bet, BetListResponse, PlaceBetRequest, PlaceBetResponse } from '~/entities/bet/types'
-import { canPlaceBet, deriveTradingStatus, finalizeBets, isPriceDirectionValid, type MyBetState } from '~/entities/auction/status-rules'
+import type { AuctionListItem, AuctionType, AuctionStatus, CargoBodyType, AuctionListResponse, AuctionDetail } from '~/entities/auction'
+import type { Bet, BetListResponse, PlaceBetRequest, PlaceBetResponse } from '~/entities/bet'
+import { canPlaceBet, deriveTradingStatus, finalizeBets, isPriceDirectionValid, type MyBetState } from '~/entities/auction'
 import { CITIES } from '~/shared/lib/cities'
 import { priceWithVat } from '~/shared/lib/vat'
 

@@ -8,7 +8,7 @@ import {
   type MyBetState,
 } from './status-rules'
 import type { AuctionStatus, AuctionType } from './types'
-import type { Bet } from '~/entities/bet/types'
+import type { Bet } from '~/entities/bet'
 
 function makeBet(overrides: Partial<Bet> = {}): Bet {
   return {

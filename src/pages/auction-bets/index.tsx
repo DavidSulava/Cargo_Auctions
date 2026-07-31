@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from '@tanstack/react-router'
-import { useBetList } from '~/entities/bet/queries'
-import type { Bet } from '~/entities/bet/types'
+import { useBetList } from '~/entities/bet'
+import type { Bet } from '~/entities/bet'
 import { Skeleton } from '@astryxdesign/core/Skeleton'
 import { Badge } from '@astryxdesign/core/Badge'
 import { Banner } from '@astryxdesign/core/Banner'

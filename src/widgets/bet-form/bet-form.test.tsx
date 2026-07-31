@@ -5,8 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { BetForm } from './index'
 import { ApiError } from '~/shared/api/client'
-import { placeBet } from '~/entities/bet/api'
-import type { AuctionDetail } from '~/entities/auction/types'
+import { placeBet } from '~/entities/bet'
+import type { AuctionDetail } from '~/entities/auction'
 
 vi.mock('~/entities/bet/api', () => ({
   fetchBets: vi.fn(),

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { AuctionListItem } from '~/entities/auction/types'
+import type { AuctionListItem } from '~/entities/auction'
 
 function makeItem(overrides: Partial<AuctionListItem> = {}): AuctionListItem {
   return {

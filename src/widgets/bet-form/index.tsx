@@ -7,10 +7,10 @@ import { FormLayout } from '@astryxdesign/core/FormLayout'
 import { Banner } from '@astryxdesign/core/Banner'
 import { Section } from '@astryxdesign/core/Section'
 import { useState } from 'react'
-import type { AuctionDetail } from '~/entities/auction/types'
+import type { AuctionDetail } from '~/entities/auction'
 import { ApiError } from '~/shared/api/client'
 import { priceWithVat } from '~/shared/lib/vat'
-import { usePlaceBet } from '~/entities/bet/queries'
+import { usePlaceBet } from '~/entities/bet'
 import { createBetSchema, type BetFormValues } from './bet-schema'
 
 interface Props {

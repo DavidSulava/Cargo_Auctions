@@ -2,7 +2,7 @@ import { useNavigate, Link } from '@tanstack/react-router'
 import { Badge } from '@astryxdesign/core/Badge'
 import { Table, proportional, pixel } from '@astryxdesign/core/Table'
 import type { TablePlugin, BodyRowRenderProps, TableColumn } from '@astryxdesign/core/Table'
-import type { AuctionListItem } from '~/entities/auction/types'
+import type { AuctionListItem } from '~/entities/auction'
 import type { FilterParams } from '~/shared/lib/filter-schema'
 
 interface Props {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import type { AuctionTrading } from '~/entities/auction/types'
+import type { AuctionTrading } from '~/entities/auction'
 import { createBetSchema } from './bet-schema'
 
 function makeTrading(overrides: Partial<AuctionTrading> = {}): AuctionTrading {

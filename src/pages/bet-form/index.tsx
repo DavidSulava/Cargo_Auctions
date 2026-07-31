@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from '@tanstack/react-router'
-import { useAuctionDetail } from '~/entities/auction/queries'
+import { useAuctionDetail } from '~/entities/auction'
 import { BetForm } from '~/widgets/bet-form'
 import { Banner } from '@astryxdesign/core/Banner'
 import { Button } from '@astryxdesign/core/Button'

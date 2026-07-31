@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { AuctionTrading } from '~/entities/auction/types'
+import type { AuctionTrading } from '~/entities/auction'
 
 export function createBetSchema(trading: AuctionTrading) {
   const schema: Record<string, z.ZodTypeAny> = {
