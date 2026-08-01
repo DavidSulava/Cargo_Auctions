@@ -2,9 +2,9 @@
 
 ![Cargo Auctions](.github/main-page.jpg)
 
-Проект можно посмотреть по ссылке: <a href="https://davidsulava.github.io/Cargo_Auctions/?cargo_num=&statuses=%5B%5D&load_city=&unload_city=&load_date_from=&load_date_to=&page=1&per_page=10" target="_blank" rel="noopener noreferrer">GitHub Pages</a>
+Проект можно посмотреть по ссылке: <a href="https://davidsulava.github.io/Cargo_Auctions/?cargo_num=&statuses=%5B%5D&load_city=&unload_city=&load_date_from=&load_date_to=&page=1&per_page=10" target="_blank" rel="noopener noreferrer">𝔾𝕚𝕥ℍ𝕦𝕓 ℙ𝕒𝕘𝕖𝕤</a>
 
-SPA для грузовых аукционов.
+SPA для грузовых аукционов. 
 
 ## Стек
 
